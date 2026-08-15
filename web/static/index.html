@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>trueka — Plataforma de Intercambio & Trueque de Artículos</title>
+    <meta name="description" content="trueka es la plataforma amigable y moderna para intercambiar y hacer trueque de artículos de segunda mano y colección. Publica lo que tienes y encuentra lo que buscas." />
+    <!-- Google Fonts for Clean Modern Look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <!-- Top Announcement Ribbon -->
+    <div class="trueka-top-ribbon">
+      <div class="container ribbon-content">
+        <span>🔄 <strong>trueka</strong> — Intercambia lo que tienes por lo que buscas • Trato Directo & Colaborativo</span>
+        <span class="ribbon-tag">Monolito Go Superligero</span>
+      </div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="site-header">
+      <div class="container header-content">
+        <!-- Logo: t-r-u-e-k-a with distinct vibrant accents -->
+        <a href="#" class="trueka-logo" id="brandLogo">
+          <div class="trueka-letters">
+            <span class="letter-t">t</span><span class="letter-r">r</span><span class="letter-u">u</span><span class="letter-e">e</span><span class="letter-k">k</span><span class="letter-a">a</span>
+          </div>
+          <span class="trueka-tagline">intercambio & trueque directo</span>
+        </a>
+
+        <!-- Search Bar -->
+        <div class="search-box">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchInput" placeholder="Buscar cámaras, walkman, consolas, o lo que buscan..." autocomplete="off">
+          <button id="clearSearchBtn" class="clear-search-btn" hidden aria-label="Limpiar">&times;</button>
+        </div>
+
+        <!-- Actions -->
+        <div class="header-actions">
+          <button id="userHandleBtn" class="btn btn-icon btn-user-handle" title="Configurar tu usuario">
+            <span>👤</span>
+            <span id="currentUserNameLabel">@usuario</span>
+          </button>
+
+          <button id="sellItemBtn" class="btn btn-trueka-primary">
+            <span>+ Publicar Trueke</span>
+          </button>
+
+          <button id="themeToggleBtn" class="btn btn-icon" title="Cambiar tema" aria-label="Cambiar tema">
+            <span class="theme-icon">☀️</span>
+            <span class="theme-label">Canvas</span>
+          </button>
+
+          <button id="cartToggleBtn" class="btn btn-trueka-outline" aria-label="Ver intercambios guardados">
+            <span>Mis Truekes</span>
+            <span id="cartBadge" class="cart-badge-trueka">0</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container container">
+      <!-- Hero Banner -->
+      <section class="hero-clean">
+        <div class="hero-clean-content">
+          <div class="trueka-color-dots">
+            <span class="dot-1"></span><span class="dot-2"></span><span class="dot-3"></span><span class="dot-4"></span><span class="dot-5"></span><span class="dot-6"></span>
+          </div>
+          <h1>Intercambia Artículos Sin Complicaciones</h1>
+          <p>Publica lo que ya no usas, indica qué artículos o categorías andas buscando y conecta con otros usuarios para acordar el intercambio perfecto.</p>
+          
+          <div class="hero-steps-row">
+            <div class="hero-step-item">
+              <span class="step-num">1</span>
+              <span><strong>Publica tu artículo:</strong> Sube foto, estado y qué buscas a cambio.</span>
+            </div>
+            <div class="hero-step-item">
+              <span class="step-num">2</span>
+              <span><strong>Vincula propuestas:</strong> Otros usuarios te ofrecen lo que buscas.</span>
+            </div>
+            <div class="hero-step-item">
+              <span class="step-num">3</span>
+              <span><strong>Catálogo circular:</strong> Las ofertas también son visibles para todos.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Interactive Filters Section -->
+      <section id="catalog" class="catalog-section">
+        <!-- Dual Mode Filter Tabs -->
+        <div class="filter-tabs-container">
+          <div class="filter-mode-toggle">
+            <button class="mode-tab-btn active" id="tabOfferedMode">📦 Artículos Ofrecidos</button>
+            <button class="mode-tab-btn" id="tabSeekingMode">🎯 ¿Qué buscan los usuarios?</button>
+          </div>
+          <span class="filter-mode-hint" id="filterModeHint">Explora los artículos disponibles para trueke en cada categoría.</span>
+        </div>
+
+        <div class="catalog-filter-row">
+          <!-- Category Pills -->
+          <div class="category-pills" id="categoryPills">
+            <button class="pill-btn active" data-category="todos">Todos los artículos</button>
+            <button class="pill-btn" data-category="📻 Audio & Vinilos">📻 Audio & Vinilos</button>
+            <button class="pill-btn" data-category="📷 Cámaras & Foto">📷 Cámaras & Foto</button>
+            <button class="pill-btn" data-category="🕹️ Consolas & Juegos">🕹️ Consolas & Juegos</button>
+            <button class="pill-btn" data-category="✒️ Escritorio & Libros">✒️ Escritorio & Libros</button>
+            <button class="pill-btn" data-category="⏱️ Relojes">⏱️ Relojes</button>
+          </div>
+
+          <div class="filter-selects">
+            <select id="statusSelect" class="clean-select" title="Filtrar por estado del trueke">
+              <option value="todos">Todos los estados</option>
+              <option value="disponible" selected>✨ Disponibles para trueke</option>
+              <option value="trueke_completado">✅ Truekes completados</option>
+            </select>
+
+            <select id="sortSelect" class="clean-select" title="Ordenar artículos">
+              <option value="newest">Más recientes</option>
+              <option value="proposals_desc">Con más ofertas de trueke</option>
+              <option value="price_asc">Valor est.: Menor a mayor</option>
+              <option value="price_desc">Valor est.: Mayor a menor</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="catalog-info-line">
+          <span id="resultsCount">Cargando catálogo Trueka...</span>
+          <button id="resetFiltersBtn" class="reset-btn-clean" hidden>Limpiar filtros &times;</button>
+        </div>
+
+        <!-- Product Grid -->
+        <div id="productGrid" class="product-grid-trueka"></div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state-trueka" hidden>
+          <div class="empty-state-icon">🔄</div>
+          <h3>No se encontraron artículos con estos filtros</h3>
+          <p>Prueba con otros términos de búsqueda o sé el primero en publicar un trueke en esta categoría.</p>
+          <div class="empty-state-actions">
+            <button id="clearFiltersEmptyBtn" class="btn btn-secondary">Ver todo el catálogo</button>
+            <button id="publishEmptyBtn" class="btn btn-trueka-primary">+ Publicar un Trueke</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer-trueka">
+      <div class="container footer-content">
+        <div class="trueka-letters-sm">
+          <span class="letter-t">t</span><span class="letter-r">r</span><span class="letter-u">u</span><span class="letter-e">e</span><span class="letter-k">k</span><span class="letter-a">a</span>
+        </div>
+        <p>Plataforma de Intercambio & Economía Circular • Trato Directo y Transparente</p>
+        <p>© 2026 Trueka — Conectando personas y objetos de valor.</p>
+      </div>
+    </footer>
+
+    <!-- Product Detail Modal -->
+    <div id="productModal" class="modal-overlay" hidden>
+      <div class="modal-card modal-lg trueka-modal">
+        <button id="closeProductModal" class="modal-close-btn-trueka" aria-label="Cerrar">&times;</button>
+        <div class="modal-body product-modal-layout">
+          <!-- Left Column: Image and Seller -->
+          <div class="modal-media-col">
+            <div class="modal-image-container">
+              <img id="modalProductImg" src="" alt="" class="modal-product-img">
+              <span id="modalProductScoreBadge" class="score-badge-floating"></span>
+            </div>
+            
+            <div class="modal-seller-card">
+              <div class="seller-avatar-icon">👤</div>
+              <div class="seller-meta">
+                <span class="seller-label">Publicado por</span>
+                <strong id="modalSellerName" class="seller-handle"></strong>
+                <span id="modalLocation" class="seller-loc"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Details & Wishlist & Proposals -->
+          <div class="modal-product-info">
+            <div class="modal-badge-row">
+              <span id="modalCategoryTag" class="cat-tag-pill"></span>
+              <span id="modalStockStatus" class="stock-tag-trueka"></span>
+            </div>
+
+            <h2 id="modalProductTitle" class="modal-title-trueka"></h2>
+            
+            <!-- Wishlist Callout Box (What owner is looking for) -->
+            <div class="wishlist-highlight-box">
+              <div class="wishlist-box-header">
+                <span class="wishlist-icon">🎯</span>
+                <div>
+                  <strong>¿Qué busca el dueño a cambio?</strong>
+                  <div class="wishlist-subtitle">Categorías y artículos aceptados para este trueke</div>
+                </div>
+              </div>
+              <div id="modalLookingForPills" class="modal-looking-pills"></div>
+              <p id="modalLookingForNote" class="modal-looking-note"></p>
+            </div>
+
+            <div class="specs-box-trueka">
+              <div><span>Estado:</span> <strong id="modalProductConditionTag"></strong></div>
+              <div><span>Época / Estilo:</span> <strong id="modalProductEra"></strong></div>
+              <div><span>Valor de referencia:</span> <strong id="modalProductPrice"></strong> <small class="text-muted">(orientativo para trueke)</small></div>
+            </div>
+
+            <div class="desc-box">
+              <h4 class="section-subheading">Descripción del artículo:</h4>
+              <p id="modalProductDesc" class="modal-desc-trueka"></p>
+            </div>
+
+            <!-- Linked Proposals Section -->
+            <div class="trade-proposals-section" id="tradeProposalsSection">
+              <div class="proposals-header">
+                <h4 class="section-subheading">🔄 Ofertas de Intercambio Recibidas (<span id="proposalsCount">0</span>)</h4>
+                <span class="proposals-sub">Artículos propuestos por otros miembros de Trueka</span>
+              </div>
+              <div id="modalProposalsList" class="proposals-list-container"></div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="modal-actions-trueka">
+              <button id="modalProposeTradeBtn" class="btn btn-trueka-primary btn-block btn-lg">
+                <span>🔄 Proponer mi Artículo a Cambio</span>
+              </button>
+              <button id="modalDirectWaBtn" class="btn btn-whatsapp btn-block btn-lg">
+                <span>💬 Proponer Trueke directo por WhatsApp</span>
+              </button>
+              <button id="modalSaveTradeBtn" class="btn btn-secondary btn-block">
+                <span>⭐ Guardar en Mis Truekes</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sell / Publish Modal -->
+    <div id="sellModal" class="modal-overlay" hidden>
+      <div class="modal-card modal-lg trueka-modal">
+        <button id="closeSellModal" class="modal-close-btn-trueka" aria-label="Cerrar">&times;</button>
+        <div class="modal-header-trueka">
+          <h2>Publicar Artículo para Trueke</h2>
+          <p>Sube lo que ofreces e indica qué artículos o categorías te gustaría recibir a cambio.</p>
+        </div>
+        <form id="sellForm" class="clean-form">
+          <!-- Step 1: Lo que ofreces -->
+          <div class="form-section-header">
+            <span class="step-circle">1</span>
+            <h3>Lo que ofreces</h3>
+          </div>
+
+          <div class="form-group">
+            <label for="sellTitle">Título de tu Artículo *</label>
+            <input type="text" id="sellTitle" required placeholder="Ej. Sony Walkman WM-F10 Original (1984)">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="sellCategory">Categoría de tu artículo *</label>
+              <select id="sellCategory" required>
+                <option value="📻 Audio & Vinilos">📻 Audio & Vinilos</option>
+                <option value="📷 Cámaras & Foto">📷 Cámaras & Foto</option>
+                <option value="🕹️ Consolas & Juegos">🕹️ Consolas & Juegos</option>
+                <option value="✒️ Escritorio & Libros">✒️ Escritorio & Libros</option>
+                <option value="⏱️ Relojes">⏱️ Relojes</option>
+                <option value="🚲 Deportes & Movilidad">🚲 Deportes & Movilidad</option>
+                <option value="👗 Moda & Accesorios">👗 Moda & Accesorios</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="sellCondition">Estado / Condición *</label>
+              <select id="sellCondition" required>
+                <option value="Nuevo / Sellado (10/10)">Nuevo / Sellado (10/10)</option>
+                <option value="Como Nuevo (10/10)">Como Nuevo (10/10)</option>
+                <option value="Excelente Estado (9/10)" selected>Excelente Estado (9/10)</option>
+                <option value="Buen Estado (8/10)">Buen Estado (8/10)</option>
+                <option value="Con Detalles de Uso (7/10)">Con Detalles de Uso (7/10)</option>
+                <option value="Para Restaurar / Piezas">Para Restaurar / Piezas</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="sellPrice">Valor Referencial Estimado (€)</label>
+              <input type="number" id="sellPrice" min="1" step="1" placeholder="Ej. 120 (orientativo para equilibrar)">
+            </div>
+
+            <div class="form-group">
+              <label for="sellLocation">Ubicación / Ciudad</label>
+              <input type="text" id="sellLocation" placeholder="Ej. Madrid, Centro o Envío">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="sellSellerName">Tu Usuario / Nombre *</label>
+              <input type="text" id="sellSellerName" required placeholder="@tu_usuario">
+            </div>
+
+            <div class="form-group">
+              <label for="sellSellerContact">WhatsApp para coordinar *</label>
+              <input type="text" id="sellSellerContact" required placeholder="+34 600 112 233">
+            </div>
+          </div>
+
+          <!-- Image Upload / Preset Section -->
+          <div class="form-group">
+            <label>Foto del Artículo *</label>
+            <div class="image-upload-wrapper">
+              <div class="file-dropzone" id="fileDropzone">
+                <input type="file" id="sellFileInput" accept="image/*" class="file-input-hidden">
+                <div class="dropzone-prompt" id="dropzonePrompt">
+                  <span class="upload-icon">📷</span>
+                  <span><strong>Haz clic para subir una foto</strong> o arrástrala aquí</span>
+                  <small class="text-muted">JPG, PNG o WEBP</small>
+                </div>
+                <div class="image-preview-box" id="imagePreviewBox" hidden>
+                  <img id="imagePreviewImg" src="" alt="Vista previa">
+                  <button type="button" id="removeImageBtn" class="btn-remove-preview" title="Quitar foto">&times;</button>
+                </div>
+              </div>
+
+              <div class="preset-images-row">
+                <span class="preset-label">O usa una foto de demostración:</span>
+                <div class="preset-chips">
+                  <button type="button" class="preset-chip" data-img="/static/images/walkman.jpg">📻 Walkman</button>
+                  <button type="button" class="preset-chip" data-img="/static/images/polaroid.jpg">📷 Polaroid</button>
+                  <button type="button" class="preset-chip" data-img="/static/images/camera.jpg">📷 Réflex</button>
+                  <button type="button" class="preset-chip" data-img="/static/images/typewriter.jpg">✒️ Máquina</button>
+                  <button type="button" class="preset-chip" data-img="/static/images/watch.jpg">⏱️ Reloj</button>
+                </div>
+              </div>
+              <input type="hidden" id="sellImageUrl" value="/static/images/walkman.jpg">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="sellDescription">Descripción del artículo *</label>
+            <textarea id="sellDescription" rows="3" required placeholder="Describe detalles de conservación, funcionamiento, historia o accesorios incluidos..."></textarea>
+          </div>
+
+          <!-- Step 2: Lo que buscas a cambio -->
+          <div class="form-section-header mt-4">
+            <span class="step-circle">2</span>
+            <h3>¿Qué buscas a cambio?</h3>
+          </div>
+
+          <div class="form-group">
+            <label>Categorías de tu interés (Selecciona una o más) *</label>
+            <div class="multiselect-pills-container" id="multiselectLookingFor">
+              <label class="multi-pill">
+                <input type="checkbox" name="lookingCategories" value="📻 Audio & Vinilos">
+                <span>📻 Audio & Vinilos</span>
+              </label>
+              <label class="multi-pill">
+                <input type="checkbox" name="lookingCategories" value="📷 Cámaras & Foto" checked>
+                <span>📷 Cámaras & Foto</span>
+              </label>
+              <label class="multi-pill">
+                <input type="checkbox" name="lookingCategories" value="🕹️ Consolas & Juegos">
+                <span>🕹️ Consolas & Juegos</span>
+              </label>
+              <label class="multi-pill">
+                <input type="checkbox" name="lookingCategories" value="✒️ Escritorio & Libros">
+                <span>✒️ Escritorio & Libros</span>
+              </label>
+              <label class="multi-pill">
+                <input type="checkbox" name="lookingCategories" value="⏱️ Relojes">
+                <span>⏱️ Relojes</span>
+              </label>
+              <label class="multi-pill">
+                <input type="checkbox" name="lookingCategories" value="🚲 Deportes & Movilidad">
+                <span>🚲 Deportes & Movilidad</span>
+              </label>
+              <label class="multi-pill">
+                <input type="checkbox" name="lookingCategories" value="👗 Moda & Accesorios">
+                <span>👗 Moda & Accesorios</span>
+              </label>
+              <label class="multi-pill">
+                <input type="checkbox" name="lookingCategories" value="Cualquier intercambio interesante">
+                <span>✨ Abierto a sugerencias</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="sellLookingForNote">Detalles de artículos específicos que buscas</label>
+            <input type="text" id="sellLookingForNote" placeholder="Ej. Busco cámara instantánea Polaroid, Game Boy o reloj mecánico...">
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="cancelSellBtn" class="btn btn-secondary">Cancelar</button>
+            <button type="submit" class="btn btn-trueka-primary">Publicar Artículo en Trueka</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Propose Trade Modal (Link Exchange) -->
+    <div id="proposeModal" class="modal-overlay" hidden>
+      <div class="modal-card modal-lg trueka-modal">
+        <button id="closeProposeModal" class="modal-close-btn-trueka" aria-label="Cerrar">&times;</button>
+        <div class="modal-header-trueka">
+          <h2>Proponer Oferta de Trueke</h2>
+          <p>Oferta un artículo en intercambio por la publicación de <strong id="proposeTargetSeller">@usuario</strong>.</p>
+        </div>
+
+        <!-- Target Item Summary Banner -->
+        <div class="target-item-summary-card" id="targetItemSummaryCard">
+          <img id="proposeTargetImg" src="" alt="" class="target-summary-thumb">
+          <div class="target-summary-info">
+            <span class="target-summary-tag">Artículo que recibirías:</span>
+            <h4 id="proposeTargetTitle"></h4>
+            <div class="target-summary-wants">
+              <span>El dueño busca:</span>
+              <strong id="proposeTargetWants"></strong>
+            </div>
+          </div>
+        </div>
+
+        <form id="proposeForm" class="clean-form">
+          <input type="hidden" id="proposeTargetId" value="">
+
+          <div class="form-section-header">
+            <span class="step-circle">🎁</span>
+            <h3>Artículo que ofreces a cambio</h3>
+          </div>
+
+          <div class="form-group">
+            <label for="proposeItemTitle">Título del artículo que ofreces *</label>
+            <input type="text" id="proposeItemTitle" required placeholder="Ej. Cámara Polaroid 600 Rainbow con estuche">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="proposeItemCategory">Categoría del artículo que ofreces *</label>
+              <select id="proposeItemCategory" required>
+                <option value="📷 Cámaras & Foto">📷 Cámaras & Foto</option>
+                <option value="📻 Audio & Vinilos">📻 Audio & Vinilos</option>
+                <option value="🕹️ Consolas & Juegos">🕹️ Consolas & Juegos</option>
+                <option value="✒️ Escritorio & Libros">✒️ Escritorio & Libros</option>
+                <option value="⏱️ Relojes">⏱️ Relojes</option>
+                <option value="🚲 Deportes & Movilidad">🚲 Deportes & Movilidad</option>
+                <option value="👗 Moda & Accesorios">👗 Moda & Accesorios</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="proposeItemCondition">Estado del artículo *</label>
+              <select id="proposeItemCondition" required>
+                <option value="Excelente (9/10)" selected>Excelente (9/10)</option>
+                <option value="Como Nuevo (10/10)">Como Nuevo (10/10)</option>
+                <option value="Buen Estado (8/10)">Buen Estado (8/10)</option>
+                <option value="Con Detalles de Uso (7/10)">Con Detalles de Uso (7/10)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Image for proposal -->
+          <div class="form-group">
+            <label>Foto de tu artículo ofrecido</label>
+            <div class="image-upload-wrapper">
+              <div class="file-dropzone" id="proposeFileDropzone">
+                <input type="file" id="proposeFileInput" accept="image/*" class="file-input-hidden">
+                <div class="dropzone-prompt" id="proposeDropzonePrompt">
+                  <span class="upload-icon">📸</span>
+                  <span><strong>Sube una foto de tu artículo</strong> o elige una demo</span>
+                </div>
+                <div class="image-preview-box" id="proposeImagePreviewBox" hidden>
+                  <img id="proposeImagePreviewImg" src="" alt="Vista previa">
+                  <button type="button" id="removeProposeImageBtn" class="btn-remove-preview" title="Quitar">&times;</button>
+                </div>
+              </div>
+
+              <div class="preset-images-row">
+                <div class="preset-chips">
+                  <button type="button" class="preset-chip-propose" data-img="/static/images/polaroid.jpg">📷 Polaroid</button>
+                  <button type="button" class="preset-chip-propose" data-img="/static/images/camera.jpg">📷 Réflex</button>
+                  <button type="button" class="preset-chip-propose" data-img="/static/images/walkman.jpg">📻 Walkman</button>
+                  <button type="button" class="preset-chip-propose" data-img="/static/images/typewriter.jpg">✒️ Máquina</button>
+                  <button type="button" class="preset-chip-propose" data-img="/static/images/watch.jpg">⏱️ Reloj</button>
+                </div>
+              </div>
+              <input type="hidden" id="proposeImageUrl" value="/static/images/polaroid.jpg">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="proposeItemDesc">Descripción breve de lo que ofreces *</label>
+            <textarea id="proposeItemDesc" rows="2" required placeholder="Detalles de funcionamiento, estado y por qué crees que es un buen intercambio..."></textarea>
+          </div>
+
+          <!-- Promote to Public Catalog Checkbox -->
+          <div class="promo-catalog-checkbox-box">
+            <label class="custom-checkbox-label">
+              <input type="checkbox" id="proposeAddToCatalog" checked>
+              <div class="checkbox-text">
+                <strong>Publicar también este artículo en el catálogo general de Trueka</strong>
+                <span>Permite que otros usuarios también descubran tu artículo y puedan proponerte intercambios directamente.</span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Proposer Contact and Message -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="proposerName">Tu Nombre o Usuario *</label>
+              <input type="text" id="proposerName" required placeholder="@tu_usuario">
+            </div>
+
+            <div class="form-group">
+              <label for="proposerContact">Tu WhatsApp *</label>
+              <input type="text" id="proposerContact" required placeholder="+34 600 000 000">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="proposeMessage">Mensaje para el dueño *</label>
+            <input type="text" id="proposeMessage" required placeholder="¡Hola! Tengo justo lo que buscas y me interesa hacer el cambio.">
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="cancelProposeBtn" class="btn btn-secondary">Cancelar</button>
+            <button type="submit" class="btn btn-trueka-primary">Enviar Propuesta de Trueke</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- My Saved Trades Drawer -->
+    <div id="cartDrawer" class="drawer-overlay" hidden>
+      <div class="drawer-content trueka-drawer">
+        <div class="drawer-header-trueka">
+          <div>
+            <h2>Mis Truekes Guardados</h2>
+            <span class="drawer-sub">Artículos guardados para coordinar trueke</span>
+          </div>
+          <button id="closeCartBtn" class="modal-close-btn-trueka" aria-label="Cerrar">&times;</button>
+        </div>
+
+        <div id="cartItemsList" class="cart-items-list-clean"></div>
+
+        <div class="cart-footer-trueka">
+          <div class="cart-info-banner">
+            <span>💡 <strong>Consejo Trueka:</strong> Coordina directamente por WhatsApp con los dueños para acordar punto de encuentro o envío seguro.</span>
+          </div>
+
+          <form id="checkoutForm" class="checkout-form-clean">
+            <div class="form-group">
+              <label for="custName">Tu Nombre</label>
+              <input type="text" id="custName" placeholder="Ej. Alex">
+            </div>
+            <div class="form-group">
+              <label for="custPhone">Tu WhatsApp</label>
+              <input type="tel" id="custPhone" placeholder="+34 600 000 000">
+            </div>
+            <button type="submit" id="checkoutWaBtn" class="btn btn-whatsapp btn-block btn-lg">
+              <span>💬 Iniciar Chat de Trueke vía WhatsApp</span>
+            </button>
+          </form>
+
+          <button id="clearCartBtn" class="btn btn-link-clean btn-block">Limpiar lista de guardados</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

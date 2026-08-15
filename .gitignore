@@ -1,0 +1,16 @@
+# Binaries and compiled files
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+trueka
+test_app.exe
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Uploaded runtime images (optional: keep directory with .gitkeep)
+web/static/uploads/*
+!web/static/uploads/.gitkeep

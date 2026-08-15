@@ -1,0 +1,27 @@
+[Unit]
+Description=Trueka — Plataforma de Intercambio & Trueque (Go Monolith)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/trueka
+ExecStart=/home/ubuntu/trueka/trueka
+Restart=always
+RestartSec=3
+
+# Environment Variables
+Environment=PORT=3005
+
+# Resource Constraints for 1GB RAM VM
+MemoryMax=120M
+CPUQuota=90%
+
+# Security Hardening
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/ubuntu/trueka/data /home/ubuntu/trueka/web/static/uploads
+
+[Install]
+WantedBy=multi-user.target
