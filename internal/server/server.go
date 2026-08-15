@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"log"
+	"mime"
 	"os"
 	"path/filepath"
 
@@ -13,10 +14,24 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
+func init() {
+	// Explicitly register MIME types so Linux/OCI servers never send text/plain for CSS/JS
+	_ = mime.AddExtensionType(".css", "text/css; charset=utf-8")
+	_ = mime.AddExtensionType(".js", "application/javascript; charset=utf-8")
+	_ = mime.AddExtensionType(".mjs", "application/javascript; charset=utf-8")
+	_ = mime.AddExtensionType(".json", "application/json; charset=utf-8")
+	_ = mime.AddExtensionType(".jpg", "image/jpeg")
+	_ = mime.AddExtensionType(".jpeg", "image/jpeg")
+	_ = mime.AddExtensionType(".png", "image/png")
+	_ = mime.AddExtensionType(".webp", "image/webp")
+	_ = mime.AddExtensionType(".svg", "image/svg+xml")
+}
+
 func resolveBasePath() string {
 	// 1. Check current working directory
 	if _, err := os.Stat(filepath.Join(".", "web", "static", "index.html")); err == nil {
-		return "."
+		abs, _ := filepath.Abs(".")
+		return abs
 	}
 
 	// 2. Check binary executable directory
@@ -32,7 +47,8 @@ func resolveBasePath() string {
 		return "/home/ubuntu/trueka"
 	}
 
-	return "."
+	abs, _ := filepath.Abs(".")
+	return abs
 }
 
 func Run() {
@@ -40,6 +56,8 @@ func Run() {
 	dataDir := filepath.Join(baseDir, "data")
 	staticDir := filepath.Join(baseDir, "web", "static")
 	indexHtml := filepath.Join(staticDir, "index.html")
+	styleCss := filepath.Join(staticDir, "style.css")
+	appJs := filepath.Join(staticDir, "app.js")
 
 	log.Printf("📂 Base project path: %s\n", baseDir)
 	log.Printf("📂 Static files path: %s\n", staticDir)
@@ -61,21 +79,32 @@ func Run() {
 	app.Use(logger.New())
 	app.Use(cors.New())
 
-	// Static assets (/static/style.css, /static/app.js, /static/images/...)
-	app.Static("/static", staticDir, fiber.Static{
-		Compress:  true,
-		ByteRange: true,
-		Browse:    false,
-		MaxAge:    3600 * 24,
-	})
-
 	// Favicon handling
 	app.Get("/favicon.ico", func(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusNoContent)
 	})
 
+	// Explicit direct routes with strict MIME types for CSS & JS
+	app.Get("/static/style.css", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "text/css; charset=utf-8")
+		return c.SendFile(styleCss)
+	})
+
+	app.Get("/static/app.js", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "application/javascript; charset=utf-8")
+		return c.SendFile(appJs)
+	})
+
+	// Static assets (/static/images/..., /static/uploads/...)
+	app.Static("/static", staticDir, fiber.Static{
+		ByteRange: true,
+		Browse:    false,
+		MaxAge:    3600 * 24,
+	})
+
 	// Serve root index.html
 	app.Get("/", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "text/html; charset=utf-8")
 		return c.SendFile(indexHtml)
 	})
 
