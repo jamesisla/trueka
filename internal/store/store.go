@@ -24,7 +24,8 @@ func New(dataDir string) (*Store, error) {
 	}
 
 	// Ensure static uploads directory exists for native disk image storage
-	_ = os.MkdirAll("./web/static/uploads", 0755)
+	uploadsDir := filepath.Join(filepath.Dir(dataDir), "web", "static", "uploads")
+	_ = os.MkdirAll(uploadsDir, 0755)
 
 	fp := filepath.Join(dataDir, "products.json")
 	s := &Store{

@@ -215,8 +215,17 @@ func (h *ProductHandler) UploadImage(c *fiber.Ctx) error {
 		ext = ".jpg"
 	}
 
+	uploadsDir := "./web/static/uploads"
+	if _, err := os.Stat(uploadsDir); os.IsNotExist(err) {
+		if execPath, err := os.Executable(); err == nil {
+			execDir := filepath.Dir(execPath)
+			uploadsDir = filepath.Join(execDir, "web", "static", "uploads")
+		}
+	}
+	_ = os.MkdirAll(uploadsDir, 0755)
+
 	filename := fmt.Sprintf("upload_%d_%d%s", time.Now().Unix(), time.Now().Nanosecond()%10000, ext)
-	dst := filepath.Join("./web/static/uploads", filename)
+	dst := filepath.Join(uploadsDir, filename)
 
 	if err := c.SaveFile(file, dst); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/example/base-opcion3/internal/handler"
 	"github.com/example/base-opcion3/internal/store"
@@ -12,8 +13,39 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
+func resolveBasePath() string {
+	// 1. Check current working directory
+	if _, err := os.Stat(filepath.Join(".", "web", "static", "index.html")); err == nil {
+		return "."
+	}
+
+	// 2. Check binary executable directory
+	if execPath, err := os.Executable(); err == nil {
+		execDir := filepath.Dir(execPath)
+		if _, err := os.Stat(filepath.Join(execDir, "web", "static", "index.html")); err == nil {
+			return execDir
+		}
+	}
+
+	// 3. Fallback to standard OCI path if present
+	if _, err := os.Stat("/home/ubuntu/trueka/web/static/index.html"); err == nil {
+		return "/home/ubuntu/trueka"
+	}
+
+	return "."
+}
+
 func Run() {
-	st, err := store.New("./data")
+	baseDir := resolveBasePath()
+	dataDir := filepath.Join(baseDir, "data")
+	staticDir := filepath.Join(baseDir, "web", "static")
+	indexHtml := filepath.Join(staticDir, "index.html")
+
+	log.Printf("📂 Base project path: %s\n", baseDir)
+	log.Printf("📂 Static files path: %s\n", staticDir)
+	log.Printf("📂 Data path: %s\n", dataDir)
+
+	st, err := store.New(dataDir)
 	if err != nil {
 		log.Fatalf("Failed to initialize store: %v", err)
 	}
@@ -29,16 +61,22 @@ func Run() {
 	app.Use(logger.New())
 	app.Use(cors.New())
 
-	// Static files serving with cache
-	app.Static("/static", "./web/static", fiber.Static{
+	// Static assets (/static/style.css, /static/app.js, /static/images/...)
+	app.Static("/static", staticDir, fiber.Static{
 		Compress:  true,
 		ByteRange: true,
 		Browse:    false,
-		MaxAge:    3600 * 24, // 24h cache for static assets
+		MaxAge:    3600 * 24,
 	})
 
+	// Favicon handling
+	app.Get("/favicon.ico", func(c *fiber.Ctx) error {
+		return c.SendStatus(fiber.StatusNoContent)
+	})
+
+	// Serve root index.html
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendFile("web/static/index.html")
+		return c.SendFile(indexHtml)
 	})
 
 	api := app.Group("/api")
@@ -79,7 +117,7 @@ func Run() {
 		port = "3005"
 	}
 
-	log.Printf("=== Trueka Running natively on http://0.0.0.0:%s ===\n", port)
+	log.Printf("=== Trueka Running on http://0.0.0.0:%s ===\n", port)
 	if err := app.Listen(fmt.Sprintf(":%s", port)); err != nil {
 		log.Fatalf("Server error: %v", err)
 	}
