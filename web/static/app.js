@@ -58,14 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const userModalThemeIcon = document.getElementById('userModalThemeIcon');
   const userModalThemeText = document.getElementById('userModalThemeText');
 
-  // Mobile Bottom Navigation Elements
-  const mobNavHome = document.getElementById('mobNavHome');
-  const mobNavSeeking = document.getElementById('mobNavSeeking');
-  const mobNavPublish = document.getElementById('mobNavPublish');
-  const mobNavTrades = document.getElementById('mobNavTrades');
-  const mobNavProfile = document.getElementById('mobNavProfile');
-  const mobNavBadge = document.getElementById('mobNavBadge');
-  const mobNavUserLabel = document.getElementById('mobNavUserLabel');
+  // Meta theme tag
   const metaThemeColor = document.getElementById('metaThemeColor');
 
   // Modals - Detail
@@ -106,7 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize
   initUserHandle();
   initTheme();
-  initMobileNav();
   initCartUI();
   initImageHandlers();
   initPresetButtons();
@@ -191,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUserHandleDisplay(currentUserHandle);
 
     if (userHandleBtn) userHandleBtn.addEventListener('click', openUserModal);
-    if (mobNavProfile) mobNavProfile.addEventListener('click', openUserModal);
 
     if (closeUserModal) closeUserModal.addEventListener('click', () => { userModal.hidden = true; });
     if (cancelUserModalBtn) cancelUserModalBtn.addEventListener('click', () => { userModal.hidden = true; });
@@ -226,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateUserHandleDisplay(handle) {
     if (currentUserNameLabel) currentUserNameLabel.textContent = handle;
-    if (mobNavUserLabel) mobNavUserLabel.textContent = handle.replace(/^@/, '');
     if (sellSellerName) sellSellerName.value = handle;
     if (proposerNameInput) proposerNameInput.value = handle;
   }
@@ -248,52 +238,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     if (userModalThemeIcon) userModalThemeIcon.textContent = isDark ? '🌙' : '☀️';
     if (userModalThemeText) userModalThemeText.textContent = isDark ? 'Modo Minimal Noir' : 'Modo Canvas';
-  }
-
-  // Mobile Bottom Navigation
-  function initMobileNav() {
-    if (mobNavHome) {
-      mobNavHome.addEventListener('click', () => {
-        setMobileNavActive(mobNavHome);
-        if (filterMode !== 'offered') {
-          tabOfferedMode.click();
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-    }
-
-    if (mobNavSeeking) {
-      mobNavSeeking.addEventListener('click', () => {
-        setMobileNavActive(mobNavSeeking);
-        if (filterMode !== 'seeking') {
-          tabSeekingMode.click();
-        }
-        const catalogEl = document.getElementById('catalog');
-        if (catalogEl) catalogEl.scrollIntoView({ behavior: 'smooth' });
-      });
-    }
-
-    if (mobNavPublish) {
-      mobNavPublish.addEventListener('click', () => {
-        if (sellSellerName) sellSellerName.value = currentUserHandle;
-        sellModal.hidden = false;
-      });
-    }
-
-    if (mobNavTrades) {
-      mobNavTrades.addEventListener('click', () => {
-        cartDrawer.hidden = false;
-      });
-    }
-  }
-
-  function setMobileNavActive(activeBtn) {
-    document.querySelectorAll('.mobile-nav-item').forEach(item => {
-      if (item !== mobNavPublish && item !== mobNavTrades) item.classList.remove('active');
-    });
-    if (activeBtn && activeBtn !== mobNavPublish && activeBtn !== mobNavTrades) {
-      activeBtn.classList.add('active');
-    }
   }
 
   // Search Input with Debounce
@@ -1006,10 +950,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function initCartUI() {
     const totalCount = cartState.length;
     cartBadge.textContent = totalCount;
-    if (mobNavBadge) {
-      mobNavBadge.textContent = totalCount;
-      mobNavBadge.style.display = totalCount > 0 ? 'flex' : 'none';
-    }
     if (userStatsSaved) {
       userStatsSaved.textContent = totalCount;
     }

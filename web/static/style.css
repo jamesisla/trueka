@@ -1662,58 +1662,25 @@ body {
   }
 
   body {
-    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 0;
   }
 
   .container {
     padding: 0 16px;
   }
 
-  /* Move Announcement Ribbon with 'trueka' from top to bottom on mobile */
+  /* Hide Announcement Ribbon on mobile to maximize screen area */
   .trueka-top-ribbon {
-    order: 4;
-    border-top: 1px solid var(--border-color);
-    border-bottom: none;
-    padding: 10px 0;
-    font-size: 0.76rem;
-    background: var(--bg-surface);
-    margin-top: 16px;
+    display: none !important;
   }
 
   .site-header {
-    order: 1;
     padding: 0;
     position: sticky;
     top: 0;
     z-index: 100;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-  }
-
-  .main-container {
-    order: 2;
-  }
-
-  .site-footer-trueka {
-    order: 5;
-  }
-
-  .ribbon-content {
-    justify-content: center;
-    text-align: center;
-  }
-
-  .ribbon-tag {
-    display: none;
-  }
-
-  #topRibbonText {
-    white-space: normal;
-    text-align: center;
-    display: block;
-    max-width: 100%;
-    padding: 0 8px;
-    line-height: 1.4;
   }
 
   .header-content {
@@ -1723,7 +1690,7 @@ body {
       "logo actions"
       "search search";
     align-items: center;
-    gap: 8px 12px;
+    gap: 8px 10px;
     padding: 10px 16px 12px;
     height: auto;
   }
@@ -1733,7 +1700,7 @@ body {
   }
 
   .trueka-letters {
-    font-size: 1.7rem;
+    font-size: 1.65rem;
     letter-spacing: -1px;
   }
 
@@ -1748,7 +1715,12 @@ body {
   }
 
   #sellItemBtn {
-    display: none; /* Accessible via mobile bottom navigation button */
+    display: inline-flex;
+    padding: 6px 11px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
   }
 
   .btn-user-handle {
@@ -1980,113 +1952,6 @@ body {
   .multi-pill span {
     padding: 7px 14px;
     font-size: 0.8rem;
-  }
-
-  /* Mobile Bottom Navigation Bar */
-  .mobile-bottom-nav {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: calc(60px + env(safe-area-inset-bottom, 0px));
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    background: var(--bg-surface);
-    border-top: 1px solid var(--border-color);
-    z-index: 150;
-    align-items: center;
-    justify-content: space-around;
-    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-  }
-
-  .mobile-nav-item {
-    flex: 1;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-family: var(--font-sans);
-    font-size: 0.68rem;
-    font-weight: 600;
-    transition: color 0.15s ease, transform 0.15s ease;
-    padding: 4px 0;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .mobile-nav-item:active {
-    transform: scale(0.94);
-  }
-
-  .mobile-nav-item.active {
-    color: var(--trk-2);
-  }
-
-  .mobile-nav-icon {
-    font-size: 1.25rem;
-    line-height: 1;
-  }
-
-  .mobile-nav-icon-wrap {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .mobile-nav-badge {
-    position: absolute;
-    top: -5px;
-    right: -9px;
-    background: var(--trk-4);
-    color: #ffffff;
-    font-size: 0.62rem;
-    font-weight: 800;
-    min-width: 16px;
-    height: 16px;
-    border-radius: var(--radius-full);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
-    box-shadow: 0 2px 5px rgba(220, 38, 38, 0.4);
-  }
-
-  .mobile-nav-publish {
-    position: relative;
-    top: -12px;
-  }
-
-  .mobile-publish-circle {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--trk-1), var(--trk-2));
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.7rem;
-    font-weight: 400;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .mobile-nav-publish:active .mobile-publish-circle {
-    transform: scale(0.90);
-  }
-
-  .mobile-nav-publish .mobile-nav-label {
-    color: var(--text-main);
-    font-weight: 700;
-    margin-top: 2px;
   }
 
   /* Toasts at Top on Mobile */
