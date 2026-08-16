@@ -1276,6 +1276,54 @@ body {
   background: var(--bg-subtle);
 }
 
+/* Preset Location Chips for Santiago Metro */
+.preset-locations-row {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.preset-loc-label {
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.preset-loc-chips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.loc-chip, .loc-chip-prop {
+  padding: 3px 9px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.loc-chip:hover, .loc-chip-prop:hover {
+  border-color: var(--trk-2);
+  background: var(--bg-surface);
+  color: var(--trk-2);
+}
+
+.modal-secondary-actions-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
 /* Target item summary card in Propose modal */
 .target-item-summary-card {
   display: flex;

@@ -12,7 +12,24 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentStatus = 'disponible';
   let currentSort = 'newest';
   let searchQuery = '';
-  let currentUserHandle = localStorage.getItem('trueka_user_handle') || '@mi_usuario';
+  
+  // Chilean Auto-Assigned Handle Generator (Zero-friction user onboarding)
+  function getOrCreateUserHandle() {
+    let handle = localStorage.getItem('trueka_user_handle');
+    if (!handle || handle === '@mi_usuario' || handle === '@usuario') {
+      const prefixes = ['truekero', 'truekera', 'trueke', 'permuta', 'vintage', 'retro', 'garaje', 'coleccion', 'feria'];
+      const places = ['stgo', 'providencia', 'nunoa', 'lascondes', 'chile', 'alameda', 'tobalaba', 'andes', 'quilpue', 'valpo'];
+      const num = Math.floor(10 + Math.random() * 90);
+      const p = prefixes[Math.floor(Math.random() * prefixes.length)];
+      const l = places[Math.floor(Math.random() * places.length)];
+      handle = `@${p}_${l}_${num}`;
+      localStorage.setItem('trueka_user_handle', handle);
+    }
+    return handle;
+  }
+
+  let currentUserHandle = getOrCreateUserHandle();
+  let savedWhatsApp = localStorage.getItem('trueka_user_whatsapp') || '';
 
   // DOM Elements
   const productGrid = document.getElementById('productGrid');
@@ -67,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalProposeTradeBtn = document.getElementById('modalProposeTradeBtn');
   const modalDirectWaBtn = document.getElementById('modalDirectWaBtn');
   const modalSaveTradeBtn = document.getElementById('modalSaveTradeBtn');
+  const modalShareBtn = document.getElementById('modalShareBtn');
   let selectedModalProductId = null;
 
   // Modals - Publish
@@ -396,6 +414,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Format Price in Chilean Pesos ($ CLP)
+  function formatPrice(val) {
+    if (val === undefined || val === null || val === '' || val <= 0) return 'Trato libre';
+    return '$' + Number(val).toLocaleString('es-CL');
+  }
+
+  // Format WhatsApp URL with Chilean phone intelligence
+  function formatWhatsAppUrl(rawPhone, message) {
+    let clean = (rawPhone || '').replace(/[^0-9]/g, '');
+    if (clean.length === 9 && clean.startsWith('9')) {
+      clean = '56' + clean;
+    } else if (clean.length === 8) {
+      clean = '569' + clean;
+    } else if (!clean.startsWith('56') && clean.length <= 10 && clean.length > 0) {
+      clean = '56' + clean;
+    } else if (!clean) {
+      clean = '56912345678';
+    }
+    return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
+  }
+
   // Render Product & Trade Cards
   function renderProducts(list) {
     productGrid.innerHTML = '';
@@ -412,9 +451,9 @@ document.addEventListener('DOMContentLoaded', () => {
       card.className = 'trueka-card';
 
       const isCompleted = item.status === 'trueke_completado' || !item.inStock;
-      const refPrice = item.price ? `${item.price.toFixed(0)} €` : 'Trato libre';
+      const refPrice = formatPrice(item.price);
       const seller = item.sellerName || '@truekero';
-      const location = item.location || 'España';
+      const location = item.location ? (item.location.includes('Metro') || item.location.includes('📍') ? item.location : '📍 ' + item.location) : '🚇 Metro a convenir';
       const proposalsCount = (item.tradeProposals && item.tradeProposals.length) || 0;
 
       // Looking For Wishlist Tags
@@ -469,7 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="card-actions-group">
               <button class="btn btn-sm btn-trueka-outline view-detail-btn" data-id="${item.id}">Ver</button>
-              ${!isCompleted ? `<button class="btn btn-sm btn-trueka-primary propose-trade-btn" data-id="${item.id}">🔄 Truekear</button>` : `<span class="text-muted" style="font-size: 0.8rem;">Completado</span>`}
+              ${!isCompleted ? `<button class="btn btn-sm btn-whatsapp quick-wa-card-btn" data-id="${item.id}" title="Chatear por WhatsApp">💬</button><button class="btn btn-sm btn-trueka-primary propose-trade-btn" data-id="${item.id}">🔄 Trueke</button>` : `<span class="text-muted" style="font-size: 0.8rem;">Completado</span>`}
             </div>
           </div>
         </div>
@@ -512,7 +551,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('modalProductImg').src = item.imageUrl || '/static/images/walkman.jpg';
     document.getElementById('modalSellerName').textContent = item.sellerName || '@truekero';
-    document.getElementById('modalLocation').textContent = item.location ? `📍 ${item.location}` : '📍 Intercambio directo';
     document.getElementById('modalProductScoreBadge').textContent = `Estado ${item.conditionScore || 9}/10`;
 
     document.getElementById('modalCategoryTag').textContent = item.category;
@@ -522,7 +560,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('modalProductTitle').textContent = item.title;
     document.getElementById('modalProductConditionTag').textContent = item.condition || 'Excelente Estado';
     document.getElementById('modalProductEra').textContent = item.era || 'Vintage / Colección';
-    document.getElementById('modalProductPrice').textContent = item.price ? `~${item.price.toFixed(0)} €` : 'Trato libre';
+    document.getElementById('modalProductPrice').textContent = formatPrice(item.price);
+    document.getElementById('modalLocation').textContent = item.location ? (item.location.includes('Metro') || item.location.includes('📍') ? item.location : '📍 ' + item.location) : '🚇 Metro Santiago a convenir';
     document.getElementById('modalProductDesc').textContent = item.description;
 
     // Looking For Wishlist in Modal
@@ -555,64 +594,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
     proposalsList.innerHTML = '';
     if (proposals.length === 0) {
-      proposalsList.innerHTML = '<div style="font-size: 0.82rem; color: var(--text-muted); padding: 8px 0;">Aún no se han registrado ofertas de intercambio. ¡Sé el primero en proponer un trueke!</div>';
+      proposalsList.innerHTML = '<div style="font-size: 0.82rem; color: var(--text-muted); padding: 8px 0;">Aún no se han registrado ofertas de intercambio públicas. ¡Sé el primero en proponer un trueke!</div>';
     } else {
       proposals.forEach(prop => {
         const pdiv = document.createElement('div');
         pdiv.className = 'proposal-item-card';
 
-        const isAccepted = prop.status === 'aceptada';
-        const isRejected = prop.status === 'rechazada';
+        const isOwner = currentUserHandle.toLowerCase() === (item.sellerName || '').toLowerCase();
+        const actionsHtml = (isOwner && prop.status === 'pendiente') ? `
+          <div class="proposal-action-btns">
+            <button class="btn btn-sm btn-trueka-primary accept-prop-btn" data-target="${item.id}" data-prop="${prop.id}">Aceptar Trueke</button>
+            <button class="btn btn-sm btn-secondary reject-prop-btn" data-target="${item.id}" data-prop="${prop.id}">Rechazar</button>
+          </div>
+        ` : '';
 
-        let statusBadge = '';
-        if (isAccepted) {
-          statusBadge = '<span style="font-size: 0.72rem; color: var(--trk-1); font-weight: 700;">✅ Trueke Aceptado</span>';
-        } else if (isRejected) {
-          statusBadge = '<span style="font-size: 0.72rem; color: var(--trk-4); font-weight: 700;">❌ Rechazada</span>';
-        }
+        const statusTag = prop.status === 'aceptado'
+          ? '<span class="proposal-status-tag tag-accepted">✅ Trueke Aceptado</span>'
+          : (prop.status === 'rechazado' ? '<span class="proposal-status-tag tag-rejected">❌ Rechazada</span>' : '<span class="proposal-status-tag">⏳ Pendiente</span>');
 
         pdiv.innerHTML = `
-          <img src="${escapeHtml(prop.offeredItemImageUrl || '/static/images/polaroid.jpg')}" alt="" class="proposal-item-thumb" onError="this.src='/static/images/polaroid.jpg'">
+          <img src="${escapeHtml(prop.offeredItemImageUrl || '/static/images/polaroid.jpg')}" class="proposal-item-thumb" alt="">
           <div class="proposal-item-details">
-            <div class="proposal-item-title">${escapeHtml(prop.offeredItemTitle)}</div>
-            <div style="font-size: 0.74rem; color: var(--trk-2);">${escapeHtml(prop.proposerName)} • ${escapeHtml(prop.offeredItemCondition || 'Excelente')}</div>
-            ${prop.message ? `<div class="proposal-item-msg">"${escapeHtml(prop.message)}"</div>` : ''}
-            ${statusBadge}
-          </div>
-          <div style="display: flex; gap: 4px; flex-direction: column; align-items: flex-end;">
-            ${prop.offeredItemId ? `<button class="btn btn-sm btn-secondary view-offered-btn" data-id="${prop.offeredItemId}">Ver</button>` : ''}
-            ${!isCompleted && prop.status === 'pendiente' ? `
-              <button class="btn btn-sm btn-trueka-primary accept-prop-btn" data-prop-id="${prop.id}">Aceptar</button>
-              <button class="btn btn-sm btn-secondary reject-prop-btn" data-prop-id="${prop.id}">Rechazar</button>
-            ` : ''}
+            <div class="proposal-top-line">
+              <strong class="proposal-title">${escapeHtml(prop.offeredItemTitle)}</strong>
+              ${statusTag}
+            </div>
+            <div class="proposal-meta-line">
+              <span>Por <strong>${escapeHtml(prop.proposerName || '@usuario')}</strong></span>
+              <span>${escapeHtml(prop.offeredItemCategory || '')}</span>
+              <span>• Estado: ${escapeHtml(prop.offeredItemCondition || '9/10')}</span>
+            </div>
+            ${prop.message ? `<p class="proposal-message">“${escapeHtml(prop.message)}”</p>` : ''}
+            ${actionsHtml}
           </div>
         `;
-
-        const viewOfferedBtn = pdiv.querySelector('.view-offered-btn');
-        if (viewOfferedBtn) {
-          viewOfferedBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openProductModal(prop.offeredItemId);
-          });
-        }
-
-        const acceptBtn = pdiv.querySelector('.accept-prop-btn');
-        if (acceptBtn) {
-          acceptBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            await handleAcceptProposal(item.id, prop.id);
-          });
-        }
-
-        const rejectBtn = pdiv.querySelector('.reject-prop-btn');
-        if (rejectBtn) {
-          rejectBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            await handleRejectProposal(item.id, prop.id);
-          });
-        }
-
         proposalsList.appendChild(pdiv);
+      });
+
+      // Bind Accept / Reject buttons
+      proposalsList.querySelectorAll('.accept-prop-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleAcceptProposal(btn.dataset.target, btn.dataset.prop);
+        });
+      });
+
+      proposalsList.querySelectorAll('.reject-prop-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleRejectProposal(btn.dataset.target, btn.dataset.prop);
+        });
       });
     }
 
@@ -620,11 +651,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function handleAcceptProposal(targetId, propId) {
-    if (!confirm('¿Deseas aceptar esta propuesta de trueke? Ambos artículos se marcarán como completados.')) return;
     try {
       const res = await fetch(`/api/products/${targetId}/proposals/${propId}/accept`, { method: 'POST' });
       if (!res.ok) throw new Error('Error al aceptar propuesta');
-      showToast('🎉 ¡Trueke aceptado y completado con éxito!', 'success');
+      showToast('🎉 ¡Felicitaciones! Has acordado el trueke con éxito.', 'success');
       productModal.hidden = true;
       fetchProducts();
     } catch (err) {
@@ -663,16 +693,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Direct WhatsApp Deal Generator (Lightweight high-conversion deal builder)
   modalDirectWaBtn.addEventListener('click', () => {
     if (!selectedModalProductId) return;
     const item = productsState.find(p => p.id === selectedModalProductId);
     if (!item) return;
 
-    const contactPhone = (item.sellerContact || "34600000000").replace(/\+/g, '').replace(/\s+/g, '');
-    const lookingText = item.lookingFor ? item.lookingFor.join(', ') : 'intercambios';
-    const msg = `¡Hola ${item.sellerName || ''}! Vi tu publicación en Trueka: "${item.title}". Veo que buscas (${lookingText}). Me gustaría hacerte una propuesta de trueke. ¿Hablamos?`;
-    window.open(`https://wa.me/${contactPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+    const wants = (item.lookingFor && item.lookingFor.length > 0) ? item.lookingFor.join(', ') : 'intercambios';
+    const loc = item.location || 'Metro Santiago / A convenir';
+
+    const msg = `¡Hola ${item.sellerName || ''}! 👋 Vi tu publicación en Trueka:\n📦 *${item.title}*\n🎯 Vi que buscas: ${wants}\n🚇 Punto de encuentro: ${loc}\n\n¿Te tinca coordinar para hacer el trueke?`;
+    window.open(formatWhatsAppUrl(item.sellerContact, msg), '_blank');
   });
+
+  // 1-Tap Share Ficha de Trueke
+  if (modalShareBtn) {
+    modalShareBtn.addEventListener('click', () => {
+      if (!selectedModalProductId) return;
+      const item = productsState.find(p => p.id === selectedModalProductId);
+      if (!item) return;
+      shareProduct(item);
+    });
+  }
+
+  async function shareProduct(item) {
+    const wants = (item.lookingFor || []).join(', ') || 'Cualquier categoría';
+    const loc = item.location || 'Metro Santiago / A convenir';
+    const text = `🔄 ¡Permuto en Trueka!\n📦 *${item.title}* (${item.category})\n🎯 Busco a cambio: ${wants}\n🚇 Punto de encuentro: ${loc}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Trueka: ${item.title}`,
+          text: text,
+          url: window.location.href,
+        });
+        return;
+      } catch (err) {
+        // User cancelled or fallback
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(`${text}\n🔗 ${window.location.href}`);
+      showToast('📋 ¡Ficha de trueke copiada! Pégala en WhatsApp o tus redes sociales.', 'success');
+    } catch (err) {
+      showToast('🔗 Comparte el enlace de la publicación.', 'info');
+    }
+  }
 
   // Sell Modal (Publish Item for Trade)
   if (sellItemBtn) {
@@ -797,7 +865,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Preset Buttons
+  // Preset Buttons (Images & Santiago Metro Locations)
   function initPresetButtons() {
     document.querySelectorAll('.preset-chip').forEach(chip => {
       chip.addEventListener('click', () => {
@@ -820,6 +888,17 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('📸 Foto demo aplicada', 'info');
       });
     });
+
+    // Santiago Metro Location Chips for Publishing
+    document.querySelectorAll('.loc-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const locInput = document.getElementById('sellLocation');
+        if (locInput) {
+          locInput.value = chip.dataset.loc;
+          showToast(`🚇 Punto de encuentro: ${chip.dataset.loc}`, 'info');
+        }
+      });
+    });
   }
 
   // Publish Form Submit
@@ -834,7 +913,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const priceVal = parseFloat(document.getElementById('sellPrice').value);
     const sellerHandle = document.getElementById('sellSellerName').value.trim() || currentUserHandle;
+    const sellerContact = document.getElementById('sellSellerContact').value.trim();
+    
     localStorage.setItem('trueka_user_handle', sellerHandle);
+    if (sellerContact) {
+      localStorage.setItem('trueka_user_whatsapp', sellerContact);
+      savedWhatsApp = sellerContact;
+    }
     currentUserHandle = sellerHandle;
     currentUserNameLabel.textContent = currentUserHandle;
 
@@ -843,11 +928,11 @@ document.addEventListener('DOMContentLoaded', () => {
       category: document.getElementById('sellCategory').value,
       condition: document.getElementById('sellCondition').value,
       conditionScore: 9,
-      price: isNaN(priceVal) ? 100 : priceVal,
-      era: 'Colección / Retro',
-      location: document.getElementById('sellLocation').value.trim() || 'España',
+      price: isNaN(priceVal) ? 0 : priceVal,
+      era: 'Colección / Santiago',
+      location: document.getElementById('sellLocation').value.trim() || 'Metro Santiago / A convenir',
       sellerName: sellerHandle,
-      sellerContact: document.getElementById('sellSellerContact').value.trim(),
+      sellerContact: sellerContact,
       imageUrl: sellImageUrl.value.trim() || '/static/images/walkman.jpg',
       description: document.getElementById('sellDescription').value.trim(),
       lookingFor: selectedLooking.length > 0 ? selectedLooking : ['Cualquier intercambio'],
@@ -882,7 +967,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetId = document.getElementById('proposeTargetId').value;
     const addToCatalog = document.getElementById('proposeAddToCatalog').checked;
     const proposerHandle = document.getElementById('proposerName').value.trim() || currentUserHandle;
+    const proposerContact = document.getElementById('proposerContact').value.trim();
+
     localStorage.setItem('trueka_user_handle', proposerHandle);
+    if (proposerContact) {
+      localStorage.setItem('trueka_user_whatsapp', proposerContact);
+      savedWhatsApp = proposerContact;
+    }
     currentUserHandle = proposerHandle;
     currentUserNameLabel.textContent = currentUserHandle;
 
@@ -894,7 +985,7 @@ document.addEventListener('DOMContentLoaded', () => {
       offeredImageUrl: proposeImageUrl.value.trim() || '/static/images/polaroid.jpg',
       offeredDescription: document.getElementById('proposeItemDesc').value.trim(),
       proposerName: proposerHandle,
-      proposerContact: document.getElementById('proposerContact').value.trim(),
+      proposerContact: proposerContact,
       message: document.getElementById('proposeMessage').value.trim(),
       addToCatalog: addToCatalog
     };
@@ -909,15 +1000,25 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res.ok) throw new Error('Error al registrar la propuesta');
 
       const data = await res.json();
-      showToast('🔄 ¡Propuesta de Trueke vinculada con éxito!', 'success');
+      showToast('🔄 ¡Propuesta de Trueke enviada con éxito!', 'success');
       proposeForm.reset();
       proposeImagePreviewBox.hidden = true;
       proposeDropzonePrompt.hidden = false;
       proposeModal.hidden = true;
+
+      // Ask if user wants to open WhatsApp directly with owner
+      const targetProd = productsState.find(p => p.id === targetId);
+      if (targetProd && targetProd.sellerContact) {
+        const msg = `¡Hola ${targetProd.sellerName || ''}! 👋 Te acabo de enviar una propuesta de trueke en Trueka:\n📦 *${targetProd.title}*\n🎁 Te ofrezco a cambio: *${payload.offeredTitle}*\n💬 Mensaje: "${payload.message}"\n\n¿Te tinca revisar para coordinar?`;
+        setTimeout(() => {
+          window.open(formatWhatsAppUrl(targetProd.sellerContact, msg), '_blank');
+        }, 600);
+      }
+
       fetchProducts();
     } catch (err) {
       console.error(err);
-      showToast('⚠️ Error al enviar propuesta', 'error');
+      showToast('⚠️ No se pudo enviar la propuesta', 'error');
     }
   });
 
@@ -1025,9 +1126,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Open first seller or general coordinator
     const firstProd = productsState.find(p => p.id === cartState[0].productId);
-    const targetPhone = (firstProd && firstProd.sellerContact ? firstProd.sellerContact : '34600000000').replace(/\+/g, '').replace(/\s+/g, '');
+    const targetPhone = (firstProd && firstProd.sellerContact) ? firstProd.sellerContact : '+56912345678';
 
-    window.open(`https://wa.me/${targetPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(formatWhatsAppUrl(targetPhone, msg), '_blank');
     cartDrawer.hidden = true;
   });
 

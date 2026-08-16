@@ -234,15 +234,20 @@
 
             <!-- Action Buttons -->
             <div class="modal-actions-trueka">
-              <button id="modalProposeTradeBtn" class="btn btn-trueka-primary btn-block btn-lg">
-                <span>🔄 Proponer mi Artículo a Cambio</span>
-              </button>
               <button id="modalDirectWaBtn" class="btn btn-whatsapp btn-block btn-lg">
-                <span>💬 Proponer Trueke directo por WhatsApp</span>
+                <span>💬 Coordinar Trueke directo por WhatsApp</span>
               </button>
-              <button id="modalSaveTradeBtn" class="btn btn-secondary btn-block">
-                <span>⭐ Guardar en Mis Truekes</span>
+              <button id="modalProposeTradeBtn" class="btn btn-trueka-primary btn-block">
+                <span>🔄 Dejar Oferta Pública de Trueke</span>
               </button>
+              <div class="modal-secondary-actions-row">
+                <button type="button" id="modalShareBtn" class="btn btn-secondary flex-1" title="Compartir ficha de trueke">
+                  <span>📤 Compartir Ficha</span>
+                </button>
+                <button type="button" id="modalSaveTradeBtn" class="btn btn-secondary flex-1">
+                  <span>⭐ Guardar</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -301,25 +306,40 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="sellPrice">Valor Referencial Estimado (€)</label>
-              <input type="number" id="sellPrice" min="1" step="1" placeholder="Ej. 120 (orientativo para equilibrar)">
+              <label for="sellPrice">Valor Referencial Estimado ($ CLP)</label>
+              <input type="number" id="sellPrice" min="0" step="500" placeholder="Ej. 25000 (orientativo para equilibrar)">
             </div>
 
             <div class="form-group">
-              <label for="sellLocation">Ubicación / Ciudad</label>
-              <input type="text" id="sellLocation" placeholder="Ej. Madrid, Centro o Envío">
+              <label for="sellLocation">Punto de Encuentro / Comuna</label>
+              <input type="text" id="sellLocation" placeholder="Ej. Metro Tobalaba, Baquedano o A convenir">
+              <div class="preset-locations-row">
+                <span class="preset-loc-label">🚇 Sugerencias Metro Santiago:</span>
+                <div class="preset-loc-chips">
+                  <button type="button" class="loc-chip" data-loc="🚇 Metro Tobalaba">🚇 Tobalaba</button>
+                  <button type="button" class="loc-chip" data-loc="🚇 Metro Los Leones">🚇 Los Leones</button>
+                  <button type="button" class="loc-chip" data-loc="🚇 Metro Baquedano">🚇 Baquedano</button>
+                  <button type="button" class="loc-chip" data-loc="🚇 Metro U. de Chile">🚇 U. de Chile</button>
+                  <button type="button" class="loc-chip" data-loc="🚇 Metro Manquehue">🚇 Manquehue</button>
+                  <button type="button" class="loc-chip" data-loc="🚇 Metro Plaza Egaña">🚇 Plaza Egaña</button>
+                  <button type="button" class="loc-chip" data-loc="📍 A convenir en Santiago">📍 A convenir</button>
+                  <button type="button" class="loc-chip" data-loc="📦 Envío por pagar">📦 Envío</button>
+                </div>
+              </div>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="sellSellerName">Tu Usuario / Nombre *</label>
+              <label for="sellSellerName">Tu Usuario / Handle *</label>
               <input type="text" id="sellSellerName" required placeholder="@tu_usuario">
+              <small class="form-hint">Nombre autoasignado (puedes cambiarlo libremente)</small>
             </div>
 
             <div class="form-group">
-              <label for="sellSellerContact">WhatsApp para coordinar *</label>
-              <input type="text" id="sellSellerContact" required placeholder="+34 600 112 233">
+              <label for="sellSellerContact">Tu WhatsApp de Contacto *</label>
+              <input type="text" id="sellSellerContact" required placeholder="+56 9 1234 5678">
+              <small class="form-hint">Para coordinar el trueke directo por chat</small>
             </div>
           </div>
 
@@ -645,6 +665,6 @@
     </div>
 
     <div id="toastContainer" class="toast-container"></div>
-    <script src="/static/app.js?v=1.2.1"></script>
+    <script src="/static/app.js?v=1.3.0"></script>
   </body>
 </html>
