@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trueka Admin — Panel de Control & CMS de Contenidos</title>
+    <meta name="description" content="Módulo independiente de administración y gestión de contenidos para la plataforma Trueka." />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/style.css">
+  </head>
+  <body>
+    <!-- Top Admin Bar -->
+    <header class="admin-header">
+      <div class="container-fluid header-inner">
+        <div class="header-brand-wrap">
+          <div class="trueka-letters">
+            <span class="letter-t">t</span><span class="letter-r">r</span><span class="letter-u">u</span><span class="letter-e">e</span><span class="letter-k">k</span><span class="letter-a">a</span>
+          </div>
+          <span class="admin-badge">ADMIN CONTROL</span>
+        </div>
+
+        <div class="header-status-group">
+          <!-- Auth Badge -->
+          <button id="authStatusBtn" class="status-pill status-pill-auth" title="Estado de autenticación admin">
+            <span class="status-dot dot-active" id="authStatusDot"></span>
+            <span id="authStatusText">🔓 Admin Autorizado</span>
+          </button>
+
+          <!-- Main App Live Ping Badge -->
+          <div class="status-pill" id="mainAppStatusBadge">
+            <span class="status-dot dot-checking"></span>
+            <span class="status-text" id="mainAppStatusText">Verificando App Principal (:3005)...</span>
+          </div>
+
+          <!-- Admin Service Status -->
+          <div class="status-pill status-pill-admin">
+            <span class="status-dot dot-active"></span>
+            <span>Módulo Admin Activo (:3006)</span>
+          </div>
+
+          <!-- Quick Actions -->
+          <a href="http://localhost:3005" target="_blank" class="btn btn-outline-clean" title="Abrir Trueka en nueva pestaña">
+            <span>🌐 Ver Web</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          </a>
+
+          <button id="btnLogoutAdmin" class="btn btn-outline-clean" title="Cerrar sesión de administrador">
+            <span>🔒 Bloquear</span>
+          </button>
+
+          <button id="btnShutdownAdmin" class="btn btn-danger-soft" title="Detener el servicio de administración">
+            <span>🛑 Detener</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="admin-layout container-fluid">
+      <!-- Sidebar Navigation -->
+      <aside class="admin-sidebar">
+        <nav class="admin-nav">
+          <button class="nav-tab active" data-tab="tab-cms">
+            <span class="nav-icon">📝</span>
+            <span class="nav-label">Mensajes Fijos (CMS)</span>
+          </button>
+          <button class="nav-tab" data-tab="tab-products">
+            <span class="nav-icon">📦</span>
+            <span class="nav-label">Gestor de Artículos</span>
+          </button>
+          <button class="nav-tab" data-tab="tab-proposals">
+            <span class="nav-icon">🔄</span>
+            <span class="nav-label">Propuestas de Trueke</span>
+          </button>
+          <button class="nav-tab" data-tab="tab-system">
+            <span class="nav-icon">⚡</span>
+            <span class="nav-label">Control API & Sistema</span>
+          </button>
+        </nav>
+
+        <!-- Quick System Stats Box -->
+        <div class="sidebar-stats-box">
+          <h4>Métricas Rápidas</h4>
+          <div class="stat-mini-row">
+            <span>Artículos Totales:</span>
+            <strong id="statTotalProducts">-</strong>
+          </div>
+          <div class="stat-mini-row">
+            <span>Disponibles:</span>
+            <strong id="statActiveProducts" class="text-success">-</strong>
+          </div>
+          <div class="stat-mini-row">
+            <span>Truekes Hechos:</span>
+            <strong id="statCompletedTrades" class="text-accent">-</strong>
+          </div>
+          <div class="stat-mini-row">
+            <span>Propuestas:</span>
+            <strong id="statTotalProposals">-</strong>
+          </div>
+          <div class="stat-mini-row">
+            <span>Uptime Admin:</span>
+            <strong id="statUptime">-</strong>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="admin-main">
+
+        <!-- TAB 1: CMS - MODIFICAR MENSAJES FIJOS -->
+        <section id="tab-cms" class="tab-pane active">
+          <div class="section-header">
+            <div>
+              <h2>Gestor de Mensajes Fijos & Textos del Sitio (CMS)</h2>
+              <p class="section-desc">Personaliza en tiempo real los textos fijos de la portada: banner superior, monolito Go, título central, subtítulo, pasos 1-2-3 y pie de página.</p>
+            </div>
+            <div class="section-actions">
+              <button id="btnResetConfig" class="btn btn-secondary">
+                <span>🔄 Restaurar Predeterminados</span>
+              </button>
+              <button id="btnSaveConfig" class="btn btn-primary">
+                <span>💾 Guardar Todos los Cambios</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="cms-grid">
+            <!-- Form Column -->
+            <div class="cms-form-col">
+              <form id="cmsForm" onsubmit="event.preventDefault();">
+
+                <!-- Grupo 1: Cintillo Superior / Banner de Anuncio -->
+                <div class="cms-card">
+                  <div class="cms-card-header">
+                    <span class="badge-num">1</span>
+                    <div>
+                      <h3>Cintillo Superior de Anuncio</h3>
+                      <p>Barra superior con aviso y etiqueta del monolito Go.</p>
+                    </div>
+                  </div>
+
+                  <div class="form-group-switch">
+                    <label class="switch-label">
+                      <input type="checkbox" id="cfgTopRibbonShow" checked>
+                      <span class="switch-slider"></span>
+                      <strong>Mostrar cintillo superior en la web</strong>
+                    </label>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="cfgTopRibbonText">Texto Principal del Cintillo</label>
+                    <input type="text" id="cfgTopRibbonText" class="form-control" placeholder="🔄 trueka — Intercambia lo que tienes por lo que buscas...">
+                    <small class="form-hint">Aparece en la parte izquierda del cintillo superior.</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="cfgTopRibbonTag">Etiqueta / Tag del Cintillo (ej. Monolito Go Superligero)</label>
+                    <input type="text" id="cfgTopRibbonTag" class="form-control" placeholder="Monolito Go Superligero">
+                    <small class="form-hint">Insignia destacada a la derecha del cintillo.</small>
+                  </div>
+                </div>
+
+                <!-- Grupo 2: Marca & Buscador -->
+                <div class="cms-card">
+                  <div class="cms-card-header">
+                    <span class="badge-num">2</span>
+                    <div>
+                      <h3>Marca & Encabezado</h3>
+                      <p>Lema debajo del logotipo y texto de ayuda del buscador.</p>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="cfgBrandTagline">Lema / Subtítulo del Logo</label>
+                    <input type="text" id="cfgBrandTagline" class="form-control" placeholder="intercambio & trueque directo">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="cfgSearchPlaceholder">Texto de marcador (Placeholder) del buscador</label>
+                    <input type="text" id="cfgSearchPlaceholder" class="form-control" placeholder="Buscar cámaras, walkman, consolas, o lo que buscan...">
+                  </div>
+                </div>
+
+                <!-- Grupo 3: Sección Central / Hero -->
+                <div class="cms-card">
+                  <div class="cms-card-header">
+                    <span class="badge-num">3</span>
+                    <div>
+                      <h3>Título Central & Subtítulo Principal (Hero)</h3>
+                      <p>Encabezado principal visible al entrar a Trueka.</p>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="cfgHeroTitle">Título Central (H1)</label>
+                    <input type="text" id="cfgHeroTitle" class="form-control form-control-lg" placeholder="Intercambia Artículos Sin Complicaciones">
+                    <small class="form-hint">El título más visible en el centro de la portada.</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="cfgHeroSubtitle">Subtítulo Explicativo</label>
+                    <textarea id="cfgHeroSubtitle" class="form-control" rows="3" placeholder="Publica lo que ya no usas, indica qué artículos o categorías andas buscando..."></textarea>
+                  </div>
+                </div>
+
+                <!-- Grupo 4: Pasos 1, 2 y 3 -->
+                <div class="cms-card">
+                  <div class="cms-card-header">
+                    <span class="badge-num">4</span>
+                    <div>
+                      <h3>Explicación de Pasos 1, 2 y 3</h3>
+                      <p>Guía rápida para los usuarios en la sección central.</p>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="cfgHeroStep1">
+                      <span class="step-badge">1</span> Texto Paso 1
+                    </label>
+                    <textarea id="cfgHeroStep1" class="form-control" rows="2" placeholder="Publica tu artículo: Sube foto, estado y qué buscas a cambio."></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="cfgHeroStep2">
+                      <span class="step-badge">2</span> Texto Paso 2
+                    </label>
+                    <textarea id="cfgHeroStep2" class="form-control" rows="2" placeholder="Vincula propuestas: Otros usuarios te ofrecen lo que buscas."></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="cfgHeroStep3">
+                      <span class="step-badge">3</span> Texto Paso 3
+                    </label>
+                    <textarea id="cfgHeroStep3" class="form-control" rows="2" placeholder="Catálogo circular: Las ofertas también son visibles para todos."></textarea>
+                  </div>
+                </div>
+
+                <!-- Grupo 5: Pie de Página (Footer) -->
+                <div class="cms-card">
+                  <div class="cms-card-header">
+                    <span class="badge-num">5</span>
+                    <div>
+                      <h3>Pie de Página (Footer)</h3>
+                      <p>Lema final de la plataforma y texto de derechos reservados.</p>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="cfgFooterText">Mensaje Principal del Footer</label>
+                    <input type="text" id="cfgFooterText" class="form-control" placeholder="Plataforma de Intercambio & Economía Circular • Trato Directo y Transparente">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="cfgFooterCopyright">Texto de Copyright / Leyenda</label>
+                    <input type="text" id="cfgFooterCopyright" class="form-control" placeholder="© 2026 Trueka — Conectando personas y objetos de valor.">
+                  </div>
+                </div>
+
+                <div class="cms-submit-bar">
+                  <button type="button" id="btnSaveConfigBottom" class="btn btn-primary btn-lg btn-block">
+                    <span>💾 Guardar y Aplicar Mensajes Fijos</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Real-time Live Preview Column -->
+            <div class="cms-preview-col">
+              <div class="preview-sticky-card">
+                <div class="preview-header">
+                  <span class="preview-badge">👁️ Vista Previa en Vivo</span>
+                  <span class="preview-tip">Se actualiza automáticamente mientras escribes</span>
+                </div>
+
+                <!-- Simulated Trueka Top Ribbon -->
+                <div class="preview-screen">
+                  <div class="preview-ribbon" id="prevRibbonBox">
+                    <span id="prevRibbonText">🔄 trueka — Intercambia lo que tienes por lo que buscas...</span>
+                    <span class="preview-ribbon-tag" id="prevRibbonTag">Monolito Go Superligero</span>
+                  </div>
+
+                  <!-- Simulated Header -->
+                  <div class="preview-site-header">
+                    <div class="trueka-letters-preview">
+                      <span>t</span><span>r</span><span>u</span><span>e</span><span>k</span><span>a</span>
+                    </div>
+                    <div class="preview-tagline" id="prevBrandTagline">intercambio & trueque directo</div>
+                  </div>
+
+                  <!-- Simulated Hero -->
+                  <div class="preview-hero">
+                    <div class="preview-dots">
+                      <span></span><span></span><span></span><span></span><span></span><span></span>
+                    </div>
+                    <h2 id="prevHeroTitle">Intercambia Artículos Sin Complicaciones</h2>
+                    <p id="prevHeroSubtitle">Publica lo que ya no usas, indica qué artículos o categorías andas buscando y conecta con otros usuarios para acordar el intercambio perfecto.</p>
+                    
+                    <div class="preview-steps-box">
+                      <div class="preview-step-row">
+                        <span class="step-num-prev">1</span>
+                        <div id="prevHeroStep1"><strong>Publica tu artículo:</strong> Sube foto, estado y qué buscas a cambio.</div>
+                      </div>
+                      <div class="preview-step-row">
+                        <span class="step-num-prev">2</span>
+                        <div id="prevHeroStep2"><strong>Vincula propuestas:</strong> Otros usuarios te ofrecen lo que buscas.</div>
+                      </div>
+                      <div class="preview-step-row">
+                        <span class="step-num-prev">3</span>
+                        <div id="prevHeroStep3"><strong>Catálogo circular:</strong> Las ofertas también son visibles para todos.</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Simulated Footer -->
+                  <div class="preview-footer">
+                    <p id="prevFooterText">Plataforma de Intercambio & Economía Circular • Trato Directo y Transparente</p>
+                    <small id="prevFooterCopyright">© 2026 Trueka — Conectando personas y objetos de valor.</small>
+                  </div>
+                </div>
+
+                <div class="preview-footer-note">
+                  <span>💡 Los cambios se sincronizan en <code>data/config.json</code> y se reflejan al instante en la aplicación cliente.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: PRODUCTOS / ARTÍCULOS -->
+        <section id="tab-products" class="tab-pane">
+          <div class="section-header">
+            <div>
+              <h2>Gestor de Artículos Publicados</h2>
+              <p class="section-desc">Monitorea y modera las publicaciones, cambia estados y elimina artículos.</p>
+            </div>
+            <div class="section-actions">
+              <button id="btnRefreshProducts" class="btn btn-outline-clean">🔄 Recargar Lista</button>
+            </div>
+          </div>
+
+          <div class="admin-filter-bar">
+            <input type="text" id="adminProductSearch" class="form-control" placeholder="Buscar por título, vendedor o categoría...">
+            <select id="adminProductFilterStatus" class="form-control select-auto">
+              <option value="todos">Todos los estados</option>
+              <option value="disponible">Disponibles para trueke</option>
+              <option value="trueke_completado">Truekes completados</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Imagen</th>
+                  <th>Artículo & Categoría</th>
+                  <th>Vendedor / Ubicación</th>
+                  <th>¿Qué Busca a Cambio?</th>
+                  <th>Propuestas</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="adminProductsTableBody">
+                <tr>
+                  <td colspan="7" class="text-center py-4">Cargando catálogo de artículos...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TAB 3: PROPUESTAS DE TRUEKE -->
+        <section id="tab-proposals" class="tab-pane">
+          <div class="section-header">
+            <div>
+              <h2>Registro de Propuestas de Intercambio</h2>
+              <p class="section-desc">Historial completo de ofertas de trueke vinculadas entre usuarios de Trueka.</p>
+            </div>
+            <div class="section-actions">
+              <button id="btnRefreshProposals" class="btn btn-outline-clean">🔄 Recargar Propuestas</button>
+            </div>
+          </div>
+
+          <div id="adminProposalsContainer" class="proposals-grid-admin">
+            <div class="text-center py-4 text-muted">Cargando propuestas de trueke...</div>
+          </div>
+        </section>
+
+        <!-- TAB 4: CONTROL API & SISTEMA -->
+        <section id="tab-system" class="tab-pane">
+          <div class="section-header">
+            <div>
+              <h2>Control de API & Estado del Sistema</h2>
+              <p class="section-desc">Diagnóstico de rendimiento, control de inicio/parada y comandos API para integración local o remota.</p>
+            </div>
+          </div>
+
+          <div class="system-cards-grid">
+            <!-- Card 1: Server Status -->
+            <div class="cms-card">
+              <h3>⚡ Diagnóstico de Rendimiento</h3>
+              <div class="diag-list" id="diagList">
+                <div class="diag-item"><span>Módulo:</span> <strong>Trueka Admin Standalone</strong></div>
+                <div class="diag-item"><span>Versión Go:</span> <strong id="diagGoVer">-</strong></div>
+                <div class="diag-item"><span>Memoria RAM Utilizada:</span> <strong id="diagRam">-</strong></div>
+                <div class="diag-item"><span>Goroutines activas:</span> <strong id="diagGoroutines">-</strong></div>
+                <div class="diag-item"><span>Tiempo de Actividad (Uptime):</span> <strong id="diagUptime">-</strong></div>
+              </div>
+            </div>
+
+            <!-- Card 2: Interfaz API y Comandos -->
+            <div class="cms-card">
+              <h3>🔌 Control por API & Terminal</h3>
+              <p class="text-muted">Puedes subir y bajar o consultar este módulo independientemente mediante peticiones HTTP:</p>
+              
+              <div class="api-doc-box">
+                <div class="api-endpoint-badge"><span class="badge-post">POST</span> <code>http://localhost:3006/api/admin/stop</code></div>
+                <p>Detiene el servidor de administración de manera segura.</p>
+                <pre><code>curl -X POST http://localhost:3006/api/admin/stop</code></pre>
+              </div>
+
+              <div class="api-doc-box">
+                <div class="api-endpoint-badge"><span class="badge-get">GET</span> <code>http://localhost:3006/api/admin/status</code></div>
+                <p>Consulta métricas, estado de la app principal y estadísticas.</p>
+                <pre><code>curl http://localhost:3006/api/admin/status</code></pre>
+              </div>
+
+              <div class="api-doc-box">
+                <div class="api-endpoint-badge"><span class="badge-put">PUT</span> <code>http://localhost:3006/api/admin/config</code></div>
+                <p>Actualiza mensajes fijos mediante JSON payload.</p>
+              </div>
+            </div>
+
+            <!-- Card 3: Comandos de Inicio Local -->
+            <div class="cms-card">
+              <h3>🚀 Comandos de Ejecución Independiente</h3>
+              <p class="text-muted">Ejecuta la app y el módulo de administración en procesos separados:</p>
+
+              <div class="cmd-block">
+                <strong>Iniciar App Principal (Puerto 3005):</strong>
+                <pre><code>go run .\cmd\app</code></pre>
+              </div>
+
+              <div class="cmd-block">
+                <strong>Iniciar Módulo Admin (Puerto 3006):</strong>
+                <pre><code>go run .\cmd\admin</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- Auth Login Modal -->
+    <div id="authModal" class="admin-modal-overlay" hidden>
+      <div class="admin-modal-card">
+        <div class="admin-modal-header">
+          <div class="trueka-letters">
+            <span class="letter-t">t</span><span class="letter-r">r</span><span class="letter-u">u</span><span class="letter-e">e</span><span class="letter-k">a</span>
+          </div>
+          <h3>Acceso Administrativo Seguro</h3>
+          <p>Ingresa la clave secreta de administración para realizar cambios.</p>
+        </div>
+
+        <form id="authForm" class="admin-modal-form">
+          <div class="form-group">
+            <label for="adminSecretInput">Clave Secreta de Administrador</label>
+            <input type="password" id="adminSecretInput" class="form-control form-control-lg" placeholder="••••••••••••" autofocus required>
+            <small class="form-hint">Por defecto en local: <code>trueka-admin-2026</code> (o definida en variable de entorno <code>ADMIN_SECRET</code>)</small>
+          </div>
+
+          <div class="modal-actions-clean">
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnSubmitAuth">
+              <span>🔓 Desbloquear Panel</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="adminToastContainer" class="admin-toast-container"></div>
+
+    <script src="/admin/admin.js?v=1.2.0"></script>
+  </body>
+</html>

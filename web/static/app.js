@@ -46,6 +46,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearCartBtn = document.getElementById('clearCartBtn');
   const checkoutForm = document.getElementById('checkoutForm');
 
+  // User Profile Modal Elements
+  const userModal = document.getElementById('userModal');
+  const closeUserModal = document.getElementById('closeUserModal');
+  const cancelUserModalBtn = document.getElementById('cancelUserModalBtn');
+  const userProfileForm = document.getElementById('userProfileForm');
+  const userModalHandleInput = document.getElementById('userModalHandleInput');
+  const userStatsPublished = document.getElementById('userStatsPublished');
+  const userStatsSaved = document.getElementById('userStatsSaved');
+  const userModalThemeToggle = document.getElementById('userModalThemeToggle');
+  const userModalThemeIcon = document.getElementById('userModalThemeIcon');
+  const userModalThemeText = document.getElementById('userModalThemeText');
+
+  // Mobile Bottom Navigation Elements
+  const mobNavHome = document.getElementById('mobNavHome');
+  const mobNavSeeking = document.getElementById('mobNavSeeking');
+  const mobNavPublish = document.getElementById('mobNavPublish');
+  const mobNavTrades = document.getElementById('mobNavTrades');
+  const mobNavProfile = document.getElementById('mobNavProfile');
+  const mobNavBadge = document.getElementById('mobNavBadge');
+  const mobNavUserLabel = document.getElementById('mobNavUserLabel');
+  const metaThemeColor = document.getElementById('metaThemeColor');
+
   // Modals - Detail
   const productModal = document.getElementById('productModal');
   const closeProductModal = document.getElementById('closeProductModal');
@@ -84,28 +106,194 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize
   initUserHandle();
   initTheme();
+  initMobileNav();
   initCartUI();
   initImageHandlers();
   initPresetButtons();
+  fetchSiteConfig();
   fetchProducts();
 
-  // User Handle Management
-  function initUserHandle() {
-    currentUserNameLabel.textContent = currentUserHandle;
-    if (sellSellerName) sellSellerName.value = currentUserHandle;
-    if (proposerNameInput) proposerNameInput.value = currentUserHandle;
-
-    userHandleBtn.addEventListener('click', () => {
-      const newHandle = prompt('Ingresa tu nombre o alias de usuario (ej. @tu_nombre):', currentUserHandle);
-      if (newHandle && newHandle.trim()) {
-        currentUserHandle = newHandle.trim().startsWith('@') ? newHandle.trim() : '@' + newHandle.trim();
-        localStorage.setItem('trueka_user_handle', currentUserHandle);
-        currentUserNameLabel.textContent = currentUserHandle;
-        if (sellSellerName) sellSellerName.value = currentUserHandle;
-        if (proposerNameInput) proposerNameInput.value = currentUserHandle;
-        showToast(`👤 Usuario activo: ${currentUserHandle}`, 'info');
+  // Dynamic Site Config & Fixed Texts (CMS)
+  async function fetchSiteConfig() {
+    try {
+      const res = await fetch('/api/config');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.success && data.data) {
+        applySiteConfig(data.data);
       }
+    } catch (err) {
+      console.warn('Config fetch skipped:', err);
+    }
+  }
+
+  function applySiteConfig(cfg) {
+    // Top Ribbon
+    const ribbonContainer = document.getElementById('topRibbonContainer');
+    const ribbonText = document.getElementById('topRibbonText');
+    const ribbonTag = document.getElementById('topRibbonTag');
+    if (ribbonContainer) {
+      if (cfg.topRibbonShow === false) {
+        ribbonContainer.style.display = 'none';
+      } else {
+        ribbonContainer.style.display = '';
+      }
+    }
+    if (ribbonText && cfg.topRibbonText) ribbonText.innerHTML = formatRibbonHtml(cfg.topRibbonText);
+    if (ribbonTag && cfg.topRibbonTag) ribbonTag.textContent = cfg.topRibbonTag;
+
+    // Brand Tagline & Search
+    const brandTagline = document.getElementById('brandTagline');
+    if (brandTagline && cfg.brandTagline) brandTagline.textContent = cfg.brandTagline;
+    if (searchInput && cfg.searchPlaceholder) searchInput.placeholder = cfg.searchPlaceholder;
+
+    // Hero Section
+    const heroTitle = document.getElementById('heroTitle');
+    const heroSubtitle = document.getElementById('heroSubtitle');
+    const heroStep1Text = document.getElementById('heroStep1Text');
+    const heroStep2Text = document.getElementById('heroStep2Text');
+    const heroStep3Text = document.getElementById('heroStep3Text');
+
+    if (heroTitle && cfg.heroTitle) heroTitle.textContent = cfg.heroTitle;
+    if (heroSubtitle && cfg.heroSubtitle) heroSubtitle.textContent = cfg.heroSubtitle;
+
+    if (heroStep1Text && cfg.heroStep1) heroStep1Text.innerHTML = formatStepHtml(cfg.heroStep1);
+    if (heroStep2Text && cfg.heroStep2) heroStep2Text.innerHTML = formatStepHtml(cfg.heroStep2);
+    if (heroStep3Text && cfg.heroStep3) heroStep3Text.innerHTML = formatStepHtml(cfg.heroStep3);
+
+    // Footer
+    const footerText = document.getElementById('footerText');
+    const footerCopyright = document.getElementById('footerCopyright');
+    if (footerText && cfg.footerText) footerText.textContent = cfg.footerText;
+    if (footerCopyright && cfg.footerCopyright) footerCopyright.textContent = cfg.footerCopyright;
+  }
+
+  function formatRibbonHtml(text) {
+    if (!text) return '';
+    let escaped = escapeHtml(text);
+    escaped = escaped.replace(/\btrueka\b/gi, '<strong>trueka</strong>');
+    return escaped;
+  }
+
+  function formatStepHtml(text) {
+    if (!text) return '';
+    const colonIdx = text.indexOf(':');
+    if (colonIdx !== -1) {
+      const boldPart = text.substring(0, colonIdx + 1);
+      const rest = text.substring(colonIdx + 1);
+      return `<strong>${escapeHtml(boldPart)}</strong>${escapeHtml(rest)}`;
+    }
+    return escapeHtml(text);
+  }
+
+  // User Handle & Profile Management
+  function initUserHandle() {
+    updateUserHandleDisplay(currentUserHandle);
+
+    if (userHandleBtn) userHandleBtn.addEventListener('click', openUserModal);
+    if (mobNavProfile) mobNavProfile.addEventListener('click', openUserModal);
+
+    if (closeUserModal) closeUserModal.addEventListener('click', () => { userModal.hidden = true; });
+    if (cancelUserModalBtn) cancelUserModalBtn.addEventListener('click', () => { userModal.hidden = true; });
+    if (userModal) {
+      userModal.addEventListener('click', (e) => {
+        if (e.target === userModal) userModal.hidden = true;
+      });
+    }
+
+    if (userProfileForm) {
+      userProfileForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const raw = userModalHandleInput.value.trim();
+        if (raw) {
+          currentUserHandle = raw.startsWith('@') ? raw : '@' + raw;
+          localStorage.setItem('trueka_user_handle', currentUserHandle);
+          updateUserHandleDisplay(currentUserHandle);
+          userModal.hidden = true;
+          showToast(`👤 Perfil actualizado: ${currentUserHandle}`, 'success');
+        }
+      });
+    }
+
+    if (userModalThemeToggle) {
+      userModalThemeToggle.addEventListener('click', () => {
+        const activeTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+      });
+    }
+  }
+
+  function updateUserHandleDisplay(handle) {
+    if (currentUserNameLabel) currentUserNameLabel.textContent = handle;
+    if (mobNavUserLabel) mobNavUserLabel.textContent = handle.replace(/^@/, '');
+    if (sellSellerName) sellSellerName.value = handle;
+    if (proposerNameInput) proposerNameInput.value = handle;
+  }
+
+  function openUserModal() {
+    if (!userModal) return;
+    if (userModalHandleInput) userModalHandleInput.value = currentUserHandle;
+    
+    // Calculate stats
+    const pubCount = productsState.filter(p => (p.sellerName || '').toLowerCase() === currentUserHandle.toLowerCase()).length;
+    if (userStatsPublished) userStatsPublished.textContent = pubCount;
+    if (userStatsSaved) userStatsSaved.textContent = cartState.length;
+
+    updateUserModalThemeBtn();
+    userModal.hidden = false;
+  }
+
+  function updateUserModalThemeBtn() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (userModalThemeIcon) userModalThemeIcon.textContent = isDark ? '🌙' : '☀️';
+    if (userModalThemeText) userModalThemeText.textContent = isDark ? 'Modo Minimal Noir' : 'Modo Canvas';
+  }
+
+  // Mobile Bottom Navigation
+  function initMobileNav() {
+    if (mobNavHome) {
+      mobNavHome.addEventListener('click', () => {
+        setMobileNavActive(mobNavHome);
+        if (filterMode !== 'offered') {
+          tabOfferedMode.click();
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    if (mobNavSeeking) {
+      mobNavSeeking.addEventListener('click', () => {
+        setMobileNavActive(mobNavSeeking);
+        if (filterMode !== 'seeking') {
+          tabSeekingMode.click();
+        }
+        const catalogEl = document.getElementById('catalog');
+        if (catalogEl) catalogEl.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+
+    if (mobNavPublish) {
+      mobNavPublish.addEventListener('click', () => {
+        if (sellSellerName) sellSellerName.value = currentUserHandle;
+        sellModal.hidden = false;
+      });
+    }
+
+    if (mobNavTrades) {
+      mobNavTrades.addEventListener('click', () => {
+        cartDrawer.hidden = false;
+      });
+    }
+  }
+
+  function setMobileNavActive(activeBtn) {
+    document.querySelectorAll('.mobile-nav-item').forEach(item => {
+      if (item !== mobNavPublish && item !== mobNavTrades) item.classList.remove('active');
     });
+    if (activeBtn && activeBtn !== mobNavPublish && activeBtn !== mobNavTrades) {
+      activeBtn.classList.add('active');
+    }
   }
 
   // Search Input with Debounce
@@ -209,13 +397,17 @@ document.addEventListener('DOMContentLoaded', () => {
   function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('trueka_theme', theme);
+    const metaTheme = document.getElementById('metaThemeColor');
     if (theme === 'dark') {
       themeIcon.textContent = '🌙';
       themeLabel.textContent = 'Noir';
+      if (metaTheme) metaTheme.setAttribute('content', '#11131a');
     } else {
       themeIcon.textContent = '☀️';
       themeLabel.textContent = 'Canvas';
+      if (metaTheme) metaTheme.setAttribute('content', '#fbf9f5');
     }
+    updateUserModalThemeBtn();
   }
 
   // Fetch Products with active filters
@@ -330,7 +522,15 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
 
-      card.querySelector('.view-detail-btn').addEventListener('click', () => openProductModal(item.id));
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button')) return;
+        openProductModal(item.id);
+      });
+
+      card.querySelector('.view-detail-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        openProductModal(item.id);
+      });
       const proposeBtn = card.querySelector('.propose-trade-btn');
       if (proposeBtn) {
         proposeBtn.addEventListener('click', (e) => {
@@ -806,6 +1006,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function initCartUI() {
     const totalCount = cartState.length;
     cartBadge.textContent = totalCount;
+    if (mobNavBadge) {
+      mobNavBadge.textContent = totalCount;
+      mobNavBadge.style.display = totalCount > 0 ? 'flex' : 'none';
+    }
+    if (userStatsSaved) {
+      userStatsSaved.textContent = totalCount;
+    }
 
     cartItemsList.innerHTML = '';
 

@@ -1577,38 +1577,775 @@ body {
 
 /* Utilities */
 .mt-4 { margin-top: 16px; }
-.text-muted { color: var(--text-muted); }
+/* Modal Drag Handle & Profile Helpers */
+.modal-drag-handle {
+  display: none;
+}
 
-/* Responsive Adjustments */
-@media (max-width: 880px) {
+.profile-quick-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 4px 0 12px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.stat-icon {
+  font-size: 1.5rem;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.stat-info strong {
+  font-size: 1.1rem;
+  color: var(--text-main);
+  font-weight: 800;
+}
+
+.stat-info span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.profile-theme-quick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.84rem;
+  margin-bottom: 12px;
+}
+
+/* Mobile Bottom Navigation (Hidden on Desktop) */
+.mobile-bottom-nav {
+  display: none;
+}
+
+/* ==========================================================================
+   Comprehensive Mobile & Smartphone Responsiveness
+   Preserves 100% of desktop layout while transforming smartphone experience
+   ========================================================================== */
+
+/* Tablet & Smaller Laptops (<= 992px) */
+@media (max-width: 992px) {
   .product-modal-layout {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 22px;
   }
   .modal-image-container {
-    height: 240px;
+    height: 260px;
   }
 }
 
-@media (max-width: 680px) {
-  .header-content {
-    flex-wrap: wrap;
-    height: auto;
-    padding: 12px 0;
-    gap: 12px;
+/* Smartphones & Small Tablets (<= 768px) */
+@media (max-width: 768px) {
+  /* Prevent horizontal scrolling & set mobile touch dynamics */
+  html, body {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
   }
-  .search-box {
-    order: 3;
+
+  body {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+
+  /* Move Announcement Ribbon with 'trueka' from top to bottom on mobile */
+  .trueka-top-ribbon {
+    order: 4;
+    border-top: 1px solid var(--border-color);
+    border-bottom: none;
+    padding: 10px 0;
+    font-size: 0.76rem;
+    background: var(--bg-surface);
+    margin-top: 16px;
+  }
+
+  .site-header {
+    order: 1;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .main-container {
+    order: 2;
+  }
+
+  .site-footer-trueka {
+    order: 5;
+  }
+
+  .ribbon-content {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .ribbon-tag {
+    display: none;
+  }
+
+  #topRibbonText {
+    white-space: normal;
+    text-align: center;
+    display: block;
     max-width: 100%;
-    width: 100%;
+    padding: 0 8px;
+    line-height: 1.4;
   }
+
+  .header-content {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas: 
+      "logo actions"
+      "search search";
+    align-items: center;
+    gap: 8px 12px;
+    padding: 10px 16px 12px;
+    height: auto;
+  }
+
+  .trueka-logo {
+    grid-area: logo;
+  }
+
+  .trueka-letters {
+    font-size: 1.7rem;
+    letter-spacing: -1px;
+  }
+
+  .trueka-tagline {
+    display: none;
+  }
+
+  .header-actions {
+    grid-area: actions;
+    justify-self: end;
+    gap: 6px;
+  }
+
+  #sellItemBtn {
+    display: none; /* Accessible via mobile bottom navigation button */
+  }
+
+  .btn-user-handle {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    max-width: 130px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #currentUserNameLabel {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  #themeToggleBtn {
+    padding: 6px 10px;
+    border-radius: var(--radius-full);
+    min-width: 36px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #themeToggleBtn .theme-label {
+    display: none;
+  }
+
+  #cartToggleBtn {
+    padding: 6px 10px;
+    border-radius: var(--radius-full);
+    min-width: 36px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  #cartToggleBtn span:first-child {
+    display: none;
+  }
+
+  #cartToggleBtn::before {
+    content: "🔄";
+    font-size: 0.95rem;
+  }
+
+  .cart-badge-trueka {
+    margin-left: 4px;
+    padding: 1px 6px;
+    font-size: 0.7rem;
+  }
+
+  /* Full-width Search Box */
+  .search-box {
+    grid-area: search;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .search-box input {
+    padding: 10px 36px 10px 38px;
+    font-size: 0.88rem;
+    border-radius: var(--radius-full);
+  }
+
+  /* Main Container & Hero on Mobile */
+  .main-container {
+    padding-top: 14px;
+    padding-bottom: 24px;
+  }
+
+  .hero-clean {
+    padding: 18px 16px 20px;
+    margin-bottom: 20px;
+    border-radius: var(--radius-md);
+  }
+
+  .trueka-color-dots {
+    margin-bottom: 8px;
+    gap: 5px;
+  }
+
+  .trueka-color-dots span {
+    width: 8px;
+    height: 8px;
+  }
+
+  .hero-clean h1 {
+    font-size: 1.35rem;
+    line-height: 1.25;
+    letter-spacing: -0.3px;
+    margin-bottom: 6px;
+  }
+
+  .hero-clean p {
+    font-size: 0.85rem;
+    line-height: 1.45;
+    margin-bottom: 14px;
+  }
+
+  .hero-steps-row {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-top: 12px;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    grid-template-columns: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hero-steps-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hero-step-item {
+    flex: 0 0 auto;
+    width: 230px;
+    background: var(--bg-main);
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    font-size: 0.78rem;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+  }
+
+  /* Dual Mode Filter Tabs on Mobile */
+  .filter-tabs-container {
+    margin-bottom: 8px;
+    gap: 8px;
+  }
+
+  .filter-mode-toggle {
+    width: 100%;
+    display: flex;
+    padding: 3px;
+  }
+
+  .mode-tab-btn {
+    flex: 1;
+    padding: 8px 6px;
+    font-size: 0.78rem;
+    text-align: center;
+    white-space: nowrap;
+    border-radius: var(--radius-full);
+  }
+
+  .filter-mode-hint {
+    font-size: 0.75rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Category Pills & Dropdown Selects */
+  .catalog-filter-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .category-pills {
+    width: 100%;
+    padding: 2px 0 6px;
+    gap: 6px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .category-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pill-btn {
+    padding: 6px 13px;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+  }
+
+  .filter-selects {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .clean-select {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    border-radius: var(--radius-full);
+    text-overflow: ellipsis;
+  }
+
+  .catalog-info-line {
+    font-size: 0.78rem;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Form Elements - Prevent iOS Zoom */
   .form-row {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
-  .hero-clean {
-    padding: 24px 20px;
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 16px !important;
+    padding: 10px 12px;
   }
-  .hero-clean h1 {
-    font-size: 1.6rem;
+
+  .multi-pill span {
+    padding: 7px 14px;
+    font-size: 0.8rem;
+  }
+
+  /* Mobile Bottom Navigation Bar */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-color);
+    z-index: 150;
+    align-items: center;
+    justify-content: space-around;
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .mobile-nav-item {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    font-weight: 600;
+    transition: color 0.15s ease, transform 0.15s ease;
+    padding: 4px 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-nav-item:active {
+    transform: scale(0.94);
+  }
+
+  .mobile-nav-item.active {
+    color: var(--trk-2);
+  }
+
+  .mobile-nav-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .mobile-nav-icon-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-nav-badge {
+    position: absolute;
+    top: -5px;
+    right: -9px;
+    background: var(--trk-4);
+    color: #ffffff;
+    font-size: 0.62rem;
+    font-weight: 800;
+    min-width: 16px;
+    height: 16px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-shadow: 0 2px 5px rgba(220, 38, 38, 0.4);
+  }
+
+  .mobile-nav-publish {
+    position: relative;
+    top: -12px;
+  }
+
+  .mobile-publish-circle {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--trk-1), var(--trk-2));
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.7rem;
+    font-weight: 400;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .mobile-nav-publish:active .mobile-publish-circle {
+    transform: scale(0.90);
+  }
+
+  .mobile-nav-publish .mobile-nav-label {
+    color: var(--text-main);
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  /* Toasts at Top on Mobile */
+  .toast-container {
+    top: 14px;
+    bottom: auto;
+    right: 14px;
+    left: 14px;
+    align-items: center;
+  }
+
+  .toast {
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+    font-size: 0.82rem;
+    padding: 10px 16px;
+  }
+}
+
+/* Smartphone Screens (<= 640px) - 2-Column High-Density Grid & Bottom Sheets */
+@media (max-width: 640px) {
+  /* 2-Column Barter Catalog Grid */
+  .product-grid-trueka {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .trueka-card {
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+
+  .card-image-wrap {
+    height: 135px;
+  }
+
+  .cat-badge-card {
+    top: 6px;
+    left: 6px;
+    font-size: 0.62rem;
+    padding: 2px 6px;
+    max-width: 72%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-radius: var(--radius-xs);
+  }
+
+  .score-badge-card {
+    top: 6px;
+    right: 6px;
+    font-size: 0.62rem;
+    padding: 2px 5px;
+  }
+
+  .card-content {
+    padding: 10px 8px 10px;
+    gap: 3px;
+  }
+
+  .card-seller-row {
+    font-size: 0.68rem;
+    margin-bottom: 2px;
+  }
+
+  .seller-location {
+    display: none;
+  }
+
+  .linked-badge-pill {
+    font-size: 0.62rem;
+    padding: 1px 4px;
+    margin-bottom: 3px;
+  }
+
+  .card-title {
+    font-size: 0.82rem;
+    line-height: 1.25;
+    margin-bottom: 3px;
+    height: 2.5em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .card-desc {
+    display: none;
+  }
+
+  .card-barter-box {
+    padding: 6px 7px;
+    margin-bottom: 6px;
+    border-radius: var(--radius-xs);
+  }
+
+  .barter-box-label {
+    font-size: 0.68rem;
+    margin-bottom: 3px;
+  }
+
+  .barter-tags-list {
+    gap: 3px;
+    margin-bottom: 0;
+  }
+
+  .barter-tag-mini {
+    font-size: 0.62rem;
+    padding: 1px 5px;
+  }
+
+  .barter-note-quote {
+    display: none;
+  }
+
+  .proposals-chip-card {
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    margin-bottom: 3px;
+  }
+
+  .card-footer {
+    padding-top: 8px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .card-ref-price {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+  }
+
+  .card-ref-price strong {
+    font-size: 0.85rem;
+  }
+
+  .card-actions-group {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .card-actions-group .btn {
+    padding: 6px 4px;
+    font-size: 0.72rem;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  /* Modals as Modern Bottom Sheets */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .trueka-modal {
+    max-width: 100%;
+    width: 100%;
+    max-height: 90vh;
+    border-radius: 22px 22px 0 0;
+    padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    border-bottom: none;
+    animation: slideUpBottomSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes slideUpBottomSheet {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .modal-drag-handle {
+    display: block;
+    width: 38px;
+    height: 4px;
+    border-radius: 9999px;
+    background: var(--border-hover);
+    margin: 0 auto 14px;
+  }
+
+  .modal-close-btn-trueka {
+    top: 14px;
+    right: 14px;
+    width: 30px;
+    height: 30px;
+    font-size: 1.15rem;
+  }
+
+  .modal-header-trueka h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal-image-container {
+    height: 200px;
+  }
+
+  .modal-title-trueka {
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+  }
+
+  .wishlist-highlight-box {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .specs-box-trueka {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
+
+  .modal-actions-trueka {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-surface);
+    padding-top: 12px;
+    padding-bottom: 4px;
+    border-top: 1px solid var(--border-color);
+    z-index: 15;
+    margin-top: 16px;
+  }
+
+  .modal-actions-trueka .btn-lg {
+    padding: 12px 16px;
+    font-size: 0.88rem;
+  }
+
+  /* Cart Drawer Full Width on Mobile */
+  .trueka-drawer {
+    max-width: 100%;
+    width: 100%;
+    padding: 20px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .drawer-header-trueka h2 {
+    font-size: 1.25rem;
+  }
+
+  .cart-item-card {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .cart-item-img {
+    width: 52px;
+    height: 52px;
+  }
+
+  .site-footer-trueka {
+    padding: 28px 16px;
+    font-size: 0.78rem;
   }
 }

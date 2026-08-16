@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -63,11 +64,32 @@ func (h *ProductHandler) CreateProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	if strings.TrimSpace(req.Title) == "" {
+	req.Title = strings.TrimSpace(req.Title)
+	if req.Title == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
 			"error":   "El título del artículo es obligatorio",
 		})
+	}
+
+	// Security: Length limits to prevent storage flooding
+	if len(req.Title) > 120 {
+		req.Title = req.Title[:120]
+	}
+	if len(req.Description) > 1500 {
+		req.Description = req.Description[:1500]
+	}
+	if len(req.SellerName) > 50 {
+		req.SellerName = req.SellerName[:50]
+	}
+	if len(req.SellerContact) > 35 {
+		req.SellerContact = req.SellerContact[:35]
+	}
+	if len(req.Location) > 60 {
+		req.Location = req.Location[:60]
+	}
+	if len(req.LookingForNote) > 300 {
+		req.LookingForNote = req.LookingForNote[:300]
 	}
 
 	p, err := h.store.Create(req)
@@ -104,6 +126,23 @@ func (h *ProductHandler) ProposeTrade(c *fiber.Ctx) error {
 			"success": false,
 			"error":   "Artículo destino no especificado",
 		})
+	}
+
+	// Security: Input length limits
+	if len(req.OfferedTitle) > 120 {
+		req.OfferedTitle = req.OfferedTitle[:120]
+	}
+	if len(req.OfferedDescription) > 1000 {
+		req.OfferedDescription = req.OfferedDescription[:1000]
+	}
+	if len(req.ProposerName) > 50 {
+		req.ProposerName = req.ProposerName[:50]
+	}
+	if len(req.ProposerContact) > 35 {
+		req.ProposerContact = req.ProposerContact[:35]
+	}
+	if len(req.Message) > 500 {
+		req.Message = req.Message[:500]
 	}
 
 	proposal, target, err := h.store.ProposeTrade(req)
@@ -203,7 +242,7 @@ func (h *ProductHandler) UploadImage(c *fiber.Ctx) error {
 		})
 	}
 
-	// Limit to max 5MB
+	// 1. Limit to max 5MB
 	if file.Size > 5*1024*1024 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
@@ -211,9 +250,35 @@ func (h *ProductHandler) UploadImage(c *fiber.Ctx) error {
 		})
 	}
 
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".webp" && ext != ".gif" {
-		ext = ".jpg"
+	// 2. Open file and inspect Magic Bytes (first 512 bytes) to detect true MIME type
+	src, err := file.Open()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"error":   "No se pudo leer el archivo",
+		})
+	}
+	defer src.Close()
+
+	headerBuffer := make([]byte, 512)
+	n, _ := src.Read(headerBuffer)
+	detectedMIME := http.DetectContentType(headerBuffer[:n])
+
+	var validExt string
+	switch {
+	case strings.HasPrefix(detectedMIME, "image/jpeg"):
+		validExt = ".jpg"
+	case strings.HasPrefix(detectedMIME, "image/png"):
+		validExt = ".png"
+	case strings.HasPrefix(detectedMIME, "image/webp"):
+		validExt = ".webp"
+	case strings.HasPrefix(detectedMIME, "image/gif"):
+		validExt = ".gif"
+	default:
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"error":   "El archivo no es una imagen válida (formatos permitidos: JPG, PNG, WEBP, GIF)",
+		})
 	}
 
 	uploadsDir := "./web/static/uploads"
@@ -225,7 +290,8 @@ func (h *ProductHandler) UploadImage(c *fiber.Ctx) error {
 	}
 	_ = os.MkdirAll(uploadsDir, 0755)
 
-	filename := fmt.Sprintf("upload_%d_%d%s", time.Now().Unix(), time.Now().Nanosecond()%10000, ext)
+	// 3. Generate sanitized, randomized filename (prevents directory traversal)
+	filename := fmt.Sprintf("upload_%d_%d%s", time.Now().Unix(), time.Now().Nanosecond()%100000, validExt)
 	dst := filepath.Join(uploadsDir, filename)
 
 	if err := c.SaveFile(file, dst); err != nil {

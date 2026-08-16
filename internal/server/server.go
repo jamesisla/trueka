@@ -6,11 +6,14 @@ import (
 	"mime"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/example/base-opcion3/internal/handler"
 	"github.com/example/base-opcion3/internal/store"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/helmet"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
@@ -68,7 +71,13 @@ func Run() {
 		log.Fatalf("Failed to initialize store: %v", err)
 	}
 
+	cfgStore, err := store.NewConfigStore(dataDir)
+	if err != nil {
+		log.Fatalf("Failed to initialize config store: %v", err)
+	}
+
 	prodHandler := handler.NewProductHandler(st)
+	cfgHandler := handler.NewConfigHandler(cfgStore)
 
 	app := fiber.New(fiber.Config{
 		AppName:      "Trueka — Plataforma de Intercambio & Trueque v1.0",
@@ -79,6 +88,29 @@ func Run() {
 	app.Use(logger.New())
 	app.Use(cors.New())
 
+	// Security 1: HTTP Security Headers (Anti-Clickjacking, Anti-XSS, Anti-MIME sniffing)
+	app.Use(helmet.New(helmet.Config{
+		XFrameOptions:      "SAMEORIGIN",
+		ContentTypeNosniff: "nosniff",
+		XSSProtection:      "1; mode=block",
+		ReferrerPolicy:     "strict-origin-when-cross-origin",
+	}))
+
+	// Security 2: Global Rate Limiter (Max 120 requests/minute per IP)
+	app.Use(limiter.New(limiter.Config{
+		Max:        120,
+		Expiration: 1 * time.Minute,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.IP()
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"success": false,
+				"error":   "Demasiadas peticiones. Por favor, espera un momento.",
+			})
+		},
+	}))
+
 	// Favicon handling
 	app.Get("/favicon.ico", func(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusNoContent)
@@ -87,11 +119,13 @@ func Run() {
 	// Explicit direct routes with strict MIME types for CSS & JS
 	app.Get("/static/style.css", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/css; charset=utf-8")
+		c.Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		return c.SendFile(styleCss)
 	})
 
 	app.Get("/static/app.js", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "application/javascript; charset=utf-8")
+		c.Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		return c.SendFile(appJs)
 	})
 
@@ -99,12 +133,13 @@ func Run() {
 	app.Static("/static", staticDir, fiber.Static{
 		ByteRange: true,
 		Browse:    false,
-		MaxAge:    3600 * 24,
+		MaxAge:    0,
 	})
 
 	// Serve root index.html
 	app.Get("/", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/html; charset=utf-8")
+		c.Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		return c.SendFile(indexHtml)
 	})
 
@@ -113,11 +148,32 @@ func Run() {
 		return c.JSON(fiber.Map{
 			"status":  "ok",
 			"service": "trueka-exchange-platform",
+			"version": "1.2.0",
 		})
 	})
 
-	// Real image upload to disk
-	api.Post("/upload", prodHandler.UploadImage)
+	// Strict limiter for image uploads (max 15/min)
+	uploadLimiter := limiter.New(limiter.Config{
+		Max:        15,
+		Expiration: 1 * time.Minute,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.IP()
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"success": false,
+				"error":   "Límite de subida de imágenes excedido (máximo 15 por minuto).",
+			})
+		},
+	})
+
+	// Dynamic Site Configuration / CMS endpoints
+	api.Get("/config", cfgHandler.GetConfig)
+	api.Put("/config", cfgHandler.UpdateConfig)
+	api.Post("/config/reset", cfgHandler.ResetConfig)
+
+	// Real image upload to disk with rate limiter
+	api.Post("/upload", uploadLimiter, prodHandler.UploadImage)
 
 	// Products / Items endpoints
 	api.Get("/products", prodHandler.GetProducts)
