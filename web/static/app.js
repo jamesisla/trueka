@@ -33,13 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // DOM Elements
   const productGrid = document.getElementById('productGrid');
-  const emptyState = document.getElementById('emptyState');
   const resultsCount = document.getElementById('resultsCount');
   const searchInput = document.getElementById('searchInput');
   const clearSearchBtn = document.getElementById('clearSearchBtn');
   const resetFiltersBtn = document.getElementById('resetFiltersBtn');
-  const clearFiltersEmptyBtn = document.getElementById('clearFiltersEmptyBtn');
-  const publishEmptyBtn = document.getElementById('publishEmptyBtn');
   const statusSelect = document.getElementById('statusSelect');
   const sortSelect = document.getElementById('sortSelect');
   const userHandleBtn = document.getElementById('userHandleBtn');
@@ -324,12 +321,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   resetFiltersBtn.addEventListener('click', resetAllFilters);
-  clearFiltersEmptyBtn.addEventListener('click', resetAllFilters);
-  if (publishEmptyBtn) {
-    publishEmptyBtn.addEventListener('click', () => {
-      sellModal.hidden = false;
-    });
-  }
 
   function resetAllFilters() {
     searchQuery = '';
@@ -438,13 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Render Product & Trade Cards
   function renderProducts(list) {
     productGrid.innerHTML = '';
-
-    if (list.length === 0) {
-      emptyState.hidden = false;
-      return;
-    }
-
-    emptyState.hidden = true;
+    if (list.length === 0) return;
 
     list.forEach(item => {
       const card = document.createElement('div');
