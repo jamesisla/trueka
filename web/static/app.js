@@ -491,30 +491,16 @@ document.addEventListener('DOMContentLoaded', () => {
               <span>Valor ref.</span>
               <strong>${refPrice}</strong>
             </div>
-            <div class="card-actions-group">
-              <button class="btn btn-sm btn-trueka-outline view-detail-btn" data-id="${item.id}">Ver</button>
-              ${!isCompleted ? `<button class="btn btn-sm btn-whatsapp quick-wa-card-btn" data-id="${item.id}" title="Chatear por WhatsApp">💬</button><button class="btn btn-sm btn-trueka-primary propose-trade-btn" data-id="${item.id}">🔄 Trueke</button>` : `<span class="text-muted" style="font-size: 0.8rem;">Completado</span>`}
+            <div class="card-status-indicator">
+              ${isCompleted ? `<span class="badge-completed-pill">✅ Completado</span>` : `<span class="badge-available-pill">✨ Disponible</span>`}
             </div>
           </div>
         </div>
       `;
 
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('button')) return;
+      card.addEventListener('click', () => {
         openProductModal(item.id);
       });
-
-      card.querySelector('.view-detail-btn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        openProductModal(item.id);
-      });
-      const proposeBtn = card.querySelector('.propose-trade-btn');
-      if (proposeBtn) {
-        proposeBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          openProposeModal(item.id);
-        });
-      }
 
       productGrid.appendChild(card);
     });

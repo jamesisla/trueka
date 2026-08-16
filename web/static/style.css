@@ -533,6 +533,7 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
@@ -727,9 +728,27 @@ body {
   font-weight: 800;
 }
 
-.card-actions-group {
+.card-status-indicator {
   display: flex;
-  gap: 6px;
+  align-items: center;
+}
+
+.badge-available-pill {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--trk-1);
+  background: rgba(5, 150, 105, 0.1);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+}
+
+.badge-completed-pill {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
 }
 
 /* Modals */
