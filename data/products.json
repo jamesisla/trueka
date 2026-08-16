@@ -197,5 +197,77 @@
     ],
     "createdAt": "2026-08-15T12:56:51.1460099-04:00",
     "featured": true
+  },
+  {
+    "id": "trk-106",
+    "title": "ThinkPad T480 Core i7 / MacBook Retina",
+    "category": "💻 Electrónica & Computación",
+    "price": 340,
+    "condition": "Excelente Estado (9/10)",
+    "conditionScore": 9,
+    "era": "Computación",
+    "description": "Notebook profesional con 16GB RAM, SSD NVMe de 512GB, doble batería en perfecto estado y teclado retroiluminado. Ideal programación.",
+    "imageUrl": "/static/images/walkman.jpg",
+    "inStock": true,
+    "status": "disponible",
+    "sellerContact": "+34633112233",
+    "sellerName": "@tech_dev",
+    "location": "Madrid",
+    "lookingFor": [
+      "🚲 Bicicletas",
+      "📷 Cámaras & Foto"
+    ],
+    "lookingForNote": "Busco bicicleta de ruta o gravel en talla M, o cámara réflex digital / analógica.",
+    "tradeProposals": [],
+    "createdAt": "2026-08-15T08:00:00-04:00",
+    "featured": true
+  },
+  {
+    "id": "trk-107",
+    "title": "Bicicleta de Ruta Trek Alpha Aluminio Shimano 105",
+    "category": "🚲 Bicicletas",
+    "price": 290,
+    "condition": "Excelente Estado (9/10)",
+    "conditionScore": 9,
+    "era": "Ciclismo & Ruta",
+    "description": "Bicicleta de carretera talla 54 (M), cuadro ligero Alpha Custom Aluminium, grupo Shimano 105 de 2x11 velocidades y cubiertas Continental nuevas.",
+    "imageUrl": "/static/images/camera.jpg",
+    "inStock": true,
+    "status": "disponible",
+    "sellerContact": "+34655443322",
+    "sellerName": "@bike_rider",
+    "location": "Barcelona",
+    "lookingFor": [
+      "💻 Electrónica & Computación",
+      "⚡ Electromovilidad"
+    ],
+    "lookingForNote": "Busco patinete eléctrico tipo Xiaomi Pro 2 o notebook portátil para trabajo.",
+    "tradeProposals": [],
+    "createdAt": "2026-08-15T07:00:00-04:00",
+    "featured": true
+  },
+  {
+    "id": "trk-108",
+    "title": "Patinete Scooter Xiaomi Mi Pro 2 Autonomía 45km",
+    "category": "⚡ Electromovilidad",
+    "price": 280,
+    "condition": "Como Nuevo (10/10)",
+    "conditionScore": 10,
+    "era": "Electromovilidad Urbana",
+    "description": "Scooter eléctrico con motor de 300W (600W pico), autonomía de hasta 45 km, doble freno y pantalla digital. Ruedas antipinchazos recién puestas.",
+    "imageUrl": "/static/images/watch.jpg",
+    "inStock": true,
+    "status": "disponible",
+    "sellerContact": "+34677889900",
+    "sellerName": "@eco_moves",
+    "location": "Valencia",
+    "lookingFor": [
+      "🚲 Bicicletas",
+      "📻 Audio & Vinilos"
+    ],
+    "lookingForNote": "Busco bicicleta de montaña o tocadiscos vintage con amplificador estéreo.",
+    "tradeProposals": [],
+    "createdAt": "2026-08-15T06:00:00-04:00",
+    "featured": false
   }
 ]

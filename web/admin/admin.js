@@ -468,13 +468,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function normalizeText(str) {
+    return (str || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
   function renderProductsTable() {
     if (!adminProductsTableBody) return;
-    const query = (adminProductSearch ? adminProductSearch.value : '').toLowerCase().trim();
+    const queryNorm = normalizeText(adminProductSearch ? adminProductSearch.value : '');
     const filterStatus = adminProductFilterStatus ? adminProductFilterStatus.value : 'todos';
 
     const filtered = productsCache.filter((p) => {
-      const matchesSearch = !query || p.title.toLowerCase().includes(query) || (p.sellerName && p.sellerName.toLowerCase().includes(query)) || (p.category && p.category.toLowerCase().includes(query));
+      const pText = normalizeText(`${p.title} ${p.sellerName} ${p.category} ${p.description} ${(p.lookingFor || []).join(' ')}`);
+      const matchesSearch = !queryNorm || pText.includes(queryNorm);
       const matchesStatus = filterStatus === 'todos' || p.status === filterStatus;
       return matchesSearch && matchesStatus;
     });

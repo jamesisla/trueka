@@ -240,13 +240,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (userModalThemeText) userModalThemeText.textContent = isDark ? 'Modo Minimal Noir' : 'Modo Canvas';
   }
 
-  // Search Input with Debounce
+  // Search Input with Debounce & Global Search Scope
   let searchTimeout = null;
   searchInput.addEventListener('input', (e) => {
     searchQuery = e.target.value;
     clearSearchBtn.hidden = !searchQuery;
+
+    // When typing a search query, reset active category to 'todos' to search across entire catalog
+    if (searchQuery.trim() && currentCategory !== 'todos') {
+      currentCategory = 'todos';
+      categoryPillsContainer.querySelectorAll('.pill-btn').forEach(p => p.classList.remove('active'));
+      const defaultPill = categoryPillsContainer.querySelector('.pill-btn[data-category="todos"]');
+      if (defaultPill) defaultPill.classList.add('active');
+    }
+
     clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => fetchProducts(), 250);
+    searchTimeout = setTimeout(() => fetchProducts(), 200);
   });
 
   clearSearchBtn.addEventListener('click', () => {

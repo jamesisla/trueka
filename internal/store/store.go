@@ -90,52 +90,111 @@ func (s *Store) saveUnsafe() error {
 	return os.WriteFile(s.filePath, data, 0644)
 }
 
+// normalizeString converts a string to lowercase, trims whitespace, and replaces accented characters
+func normalizeString(s string) string {
+	s = strings.ToLower(strings.TrimSpace(s))
+	replacer := strings.NewReplacer(
+		"á", "a", "à", "a", "ä", "a", "â", "a", "ã", "a", "å", "a",
+		"é", "e", "è", "e", "ë", "e", "ê", "e",
+		"í", "i", "ì", "i", "ï", "i", "î", "i",
+		"ó", "o", "ò", "o", "ö", "o", "ô", "o", "õ", "o",
+		"ú", "u", "ù", "u", "ü", "u", "û", "u",
+		"ñ", "n", "ç", "c",
+	)
+	return replacer.Replace(s)
+}
+
 func (s *Store) GetAll(search, category, lookingForCategory, condition, status, sortOrder string) []model.Product {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	var result []model.Product
 
-	searchLower := strings.ToLower(strings.TrimSpace(search))
-	categoryLower := strings.ToLower(strings.TrimSpace(category))
-	lookingForLower := strings.ToLower(strings.TrimSpace(lookingForCategory))
-	conditionLower := strings.ToLower(strings.TrimSpace(condition))
-	statusLower := strings.ToLower(strings.TrimSpace(status))
+	searchNorm := normalizeString(search)
+	categoryNorm := normalizeString(category)
+	lookingForNorm := normalizeString(lookingForCategory)
+	conditionNorm := normalizeString(condition)
+	statusNorm := normalizeString(status)
+
+	searchTokens := strings.Fields(searchNorm)
 
 	for _, p := range s.products {
-		// Search query
-		if searchLower != "" {
-			matchTitle := strings.Contains(strings.ToLower(p.Title), searchLower)
-			matchDesc := strings.Contains(strings.ToLower(p.Description), searchLower)
-			matchEra := strings.Contains(strings.ToLower(p.Era), searchLower)
-			matchSeller := strings.Contains(strings.ToLower(p.SellerName), searchLower)
-			matchLookingNote := strings.Contains(strings.ToLower(p.LookingForNote), searchLower)
-
-			matchLookingCategory := false
+		// 1. Search Query: Smart accent-insensitive matching across ALL product fields & tokens
+		if len(searchTokens) > 0 {
+			var sb strings.Builder
+			sb.WriteString(normalizeString(p.Title))
+			sb.WriteString(" ")
+			sb.WriteString(normalizeString(p.Category))
+			sb.WriteString(" ")
+			sb.WriteString(normalizeString(p.Description))
+			sb.WriteString(" ")
+			sb.WriteString(normalizeString(p.Era))
+			sb.WriteString(" ")
+			sb.WriteString(normalizeString(p.SellerName))
+			sb.WriteString(" ")
+			sb.WriteString(normalizeString(p.Location))
+			sb.WriteString(" ")
+			sb.WriteString(normalizeString(p.LookingForNote))
+			sb.WriteString(" ")
 			for _, lf := range p.LookingFor {
-				if strings.Contains(strings.ToLower(lf), searchLower) {
-					matchLookingCategory = true
-					break
+				sb.WriteString(normalizeString(lf))
+				sb.WriteString(" ")
+			}
+			for _, prop := range p.TradeProposals {
+				sb.WriteString(normalizeString(prop.OfferedItemTitle))
+				sb.WriteString(" ")
+				sb.WriteString(normalizeString(prop.OfferedItemCategory))
+				sb.WriteString(" ")
+				sb.WriteString(normalizeString(prop.ProposerName))
+				sb.WriteString(" ")
+				sb.WriteString(normalizeString(prop.Message))
+				sb.WriteString(" ")
+			}
+
+			productText := sb.String()
+			allTokensMatched := true
+
+			for _, token := range searchTokens {
+				if strings.Contains(productText, token) {
+					continue
 				}
+				// Try singular stem if token ends in 's' (e.g. camaras -> camara, bicicletas -> bicicleta)
+				if len(token) > 3 && strings.HasSuffix(token, "s") {
+					stem := strings.TrimSuffix(token, "s")
+					if strings.Contains(productText, stem) {
+						continue
+					}
+				}
+				// Try token without 'es' (e.g. relojes -> reloj)
+				if len(token) > 4 && strings.HasSuffix(token, "es") {
+					stem := strings.TrimSuffix(token, "es")
+					if strings.Contains(productText, stem) {
+						continue
+					}
+				}
+				allTokensMatched = false
+				break
 			}
 
-			if !matchTitle && !matchDesc && !matchEra && !matchSeller && !matchLookingNote && !matchLookingCategory {
+			if !allTokensMatched {
 				continue
 			}
 		}
 
-		// Category of offered item
-		if categoryLower != "" && categoryLower != "todos" {
-			if strings.ToLower(p.Category) != categoryLower {
+		// 2. Category of offered item
+		if categoryNorm != "" && categoryNorm != "todos" {
+			pCatNorm := normalizeString(p.Category)
+			if pCatNorm != categoryNorm && !strings.Contains(pCatNorm, categoryNorm) && !strings.Contains(categoryNorm, pCatNorm) {
 				continue
 			}
 		}
 
-		// Category that the owner is seeking
-		if lookingForLower != "" && lookingForLower != "todos" {
+		// 3. Category that the owner is seeking (Wishlist mode)
+		if lookingForNorm != "" && lookingForNorm != "todos" {
 			matched := false
 			for _, lf := range p.LookingFor {
-				if strings.ToLower(lf) == lookingForLower || strings.Contains(strings.ToLower(lf), lookingForLower) {
+				lfNorm := normalizeString(lf)
+				if lfNorm == lookingForNorm || strings.Contains(lfNorm, lookingForNorm) || strings.Contains(lookingForNorm, lfNorm) {
 					matched = true
 					break
 				}
@@ -145,16 +204,16 @@ func (s *Store) GetAll(search, category, lookingForCategory, condition, status, 
 			}
 		}
 
-		// Condition filter
-		if conditionLower != "" && conditionLower != "todas" {
-			if !strings.Contains(strings.ToLower(p.Condition), conditionLower) {
+		// 4. Condition filter
+		if conditionNorm != "" && conditionNorm != "todas" && conditionNorm != "todos" {
+			if !strings.Contains(normalizeString(p.Condition), conditionNorm) {
 				continue
 			}
 		}
 
-		// Status filter
-		if statusLower != "" && statusLower != "todos" {
-			if strings.ToLower(p.Status) != statusLower {
+		// 5. Status filter
+		if statusNorm != "" && statusNorm != "todos" {
+			if normalizeString(p.Status) != statusNorm {
 				continue
 			}
 		}
@@ -605,6 +664,69 @@ func defaultProducts() map[string]model.Product {
 			LookingForNote: "Busco vinilos de jazz clásico de primera edición o pluma estilográfica Parker antigua.",
 			TradeProposals: make([]model.TradeProposal, 0),
 			CreatedAt:      now.Add(-30 * time.Hour),
+			Featured:       false,
+		},
+		{
+			ID:             "trk-106",
+			Title:          "ThinkPad T480 Core i7 / MacBook Retina",
+			Category:       "💻 Electrónica & Computación",
+			Price:          340.00,
+			Condition:      "Excelente Estado (9/10)",
+			ConditionScore: 9,
+			Era:            "Computación",
+			Description:    "Notebook profesional con 16GB RAM, SSD NVMe de 512GB, doble batería en perfecto estado y teclado retroiluminado. Ideal programación.",
+			ImageURL:       "/static/images/walkman.jpg",
+			InStock:        true,
+			Status:         "disponible",
+			SellerContact:  "+34633112233",
+			SellerName:     "@tech_dev",
+			Location:       "Madrid",
+			LookingFor:     []string{"🚲 Bicicletas", "📷 Cámaras & Foto"},
+			LookingForNote: "Busco bicicleta de ruta o gravel en talla M, o cámara réflex digital / analógica.",
+			TradeProposals: make([]model.TradeProposal, 0),
+			CreatedAt:      now.Add(-40 * time.Hour),
+			Featured:       true,
+		},
+		{
+			ID:             "trk-107",
+			Title:          "Bicicleta de Ruta Trek Alpha Aluminio Shimano 105",
+			Category:       "🚲 Bicicletas",
+			Price:          290.00,
+			Condition:      "Excelente Estado (9/10)",
+			ConditionScore: 9,
+			Era:            "Ciclismo & Ruta",
+			Description:    "Bicicleta de carretera talla 54 (M), cuadro ligero Alpha Custom Aluminium, grupo Shimano 105 de 2x11 velocidades y cubiertas Continental nuevas.",
+			ImageURL:       "/static/images/camera.jpg",
+			InStock:        true,
+			Status:         "disponible",
+			SellerContact:  "+34655443322",
+			SellerName:     "@bike_rider",
+			Location:       "Barcelona",
+			LookingFor:     []string{"💻 Electrónica & Computación", "⚡ Electromovilidad"},
+			LookingForNote: "Busco patinete eléctrico tipo Xiaomi Pro 2 o notebook portátil para trabajo.",
+			TradeProposals: make([]model.TradeProposal, 0),
+			CreatedAt:      now.Add(-45 * time.Hour),
+			Featured:       true,
+		},
+		{
+			ID:             "trk-108",
+			Title:          "Patinete Scooter Xiaomi Mi Pro 2 Autonomía 45km",
+			Category:       "⚡ Electromovilidad",
+			Price:          280.00,
+			Condition:      "Como Nuevo (10/10)",
+			ConditionScore: 10,
+			Era:            "Electromovilidad Urbana",
+			Description:    "Scooter eléctrico con motor de 300W (600W pico), autonomía de hasta 45 km, doble freno y pantalla digital. Ruedas antipinchazos recién puestas.",
+			ImageURL:       "/static/images/watch.jpg",
+			InStock:        true,
+			Status:         "disponible",
+			SellerContact:  "+34677889900",
+			SellerName:     "@eco_moves",
+			Location:       "Valencia",
+			LookingFor:     []string{"🚲 Bicicletas", "📻 Audio & Vinilos"},
+			LookingForNote: "Busco bicicleta de montaña o tocadiscos vintage con amplificador estéreo.",
+			TradeProposals: make([]model.TradeProposal, 0),
+			CreatedAt:      now.Add(-50 * time.Hour),
 			Featured:       false,
 		},
 	}
