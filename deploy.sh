@@ -12,21 +12,27 @@ echo "🚀 Iniciando despliegue de Trueka..."
 echo "📦 Actualizando código desde Git..."
 git pull origin main || git pull
 
-# 2. Compilar binario nativo en Go con optimización de tamaño y velocidad
-echo "🔨 Compilando binario nativo Go..."
+# 2. Compilar binarios nativos Go con optimización de tamaño y velocidad
+echo "🔨 Compilando binarios nativos Go (App + Admin)..."
 export CGO_ENABLED=0
 go build -ldflags="-s -w" -o trueka ./cmd/app
+go build -ldflags="-s -w" -o trueka-admin ./cmd/admin
 
 # 3. Asegurar permisos y directorios
 mkdir -p data web/static/uploads
-chmod +x trueka
+chmod +x trueka trueka-admin
 
-# 4. Reiniciar servicio systemd
+# 4. Reiniciar servicios systemd si están activos
 if systemctl is-active --quiet trueka; then
     echo "🔄 Reiniciando servicio systemd trueka..."
     sudo systemctl restart trueka
 else
-    echo "ℹ️ Servicio no activo aún. Puedes iniciarlo con: sudo systemctl start trueka"
+    echo "ℹ️ Servicio trueka no activo aún. Puedes iniciarlo con: sudo systemctl start trueka"
 fi
 
-echo "✅ Despliegue completado con éxito. Trueka está corriendo."
+if systemctl is-active --quiet trueka-admin; then
+    echo "🔄 Reiniciando servicio systemd trueka-admin..."
+    sudo systemctl restart trueka-admin
+fi
+
+echo "✅ Despliegue completado con éxito. Trueka (App + Admin) listos."

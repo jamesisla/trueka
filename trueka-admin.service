@@ -1,0 +1,28 @@
+[Unit]
+Description=Trueka — Panel de Administracion & CMS (Go Admin)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/trueka
+ExecStart=/home/ubuntu/trueka/trueka-admin
+Restart=always
+RestartSec=3
+
+# Environment Variables
+Environment=ADMIN_PORT=3006
+Environment=ADMIN_SECRET=trueka-admin-2026
+
+# Resource Constraints for 1GB RAM VM
+MemoryMax=80M
+CPUQuota=50%
+
+# Security Hardening
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/ubuntu/trueka/data
+
+[Install]
+WantedBy=multi-user.target
