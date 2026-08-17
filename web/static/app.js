@@ -691,13 +691,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const wants = (item.lookingFor || []).join(', ') || 'Cualquier categoría';
     const loc = item.location || 'Metro Santiago / A convenir';
     const text = `🔄 ¡Permuto en Trueka!\n📦 *${item.title}* (${item.category})\n🎯 Busco a cambio: ${wants}\n🚇 Punto de encuentro: ${loc}`;
+    const shareUrl = window.location.origin;
     
     if (navigator.share) {
       try {
         await navigator.share({
           title: `Trueka: ${item.title}`,
           text: text,
-          url: window.location.href,
+          url: shareUrl,
         });
         return;
       } catch (err) {
@@ -706,7 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      await navigator.clipboard.writeText(`${text}\n🔗 ${window.location.href}`);
+      await navigator.clipboard.writeText(`${text}\n🔗 ${shareUrl}`);
       showToast('📋 ¡Ficha de trueke copiada! Pégala en WhatsApp o tus redes sociales.', 'success');
     } catch (err) {
       showToast('🔗 Comparte el enlace de la publicación.', 'info');
