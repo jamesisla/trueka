@@ -160,6 +160,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     }
+    const btnCloseAuthModal = document.getElementById('btnCloseAuthModal');
+    if (btnCloseAuthModal) {
+      btnCloseAuthModal.addEventListener('click', () => {
+        closeAuthModal();
+      });
+    }
+
+    // Close on backdrop click
+    if (authModal) {
+      authModal.addEventListener('click', (e) => {
+        if (e.target === authModal) {
+          closeAuthModal();
+        }
+      });
+    }
   }
 
   function updateAuthBadge() {
@@ -176,6 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function openAuthModal() {
     if (authModal) {
       authModal.hidden = false;
+      authModal.classList.remove('is-hidden');
+      authModal.style.display = 'flex';
       if (adminSecretInput) {
         adminSecretInput.value = '';
         adminSecretInput.focus();
@@ -184,7 +201,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function closeAuthModal() {
-    if (authModal) authModal.hidden = true;
+    if (authModal) {
+      authModal.hidden = true;
+      authModal.classList.add('is-hidden');
+      authModal.style.display = 'none';
+    }
   }
 
   // Authenticated Fetch Wrapper

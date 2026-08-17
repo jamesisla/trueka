@@ -12,7 +12,7 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="apple-touch-icon" href="/static/favicon.svg">
-    <link rel="stylesheet" href="/admin/style.css">
+    <link rel="stylesheet" href="/admin/style.css?v=1.2.3">
   </head>
   <body>
     <!-- Top Admin Bar -->
@@ -459,8 +459,9 @@
     </div>
 
     <!-- Auth Login Modal -->
-    <div id="authModal" class="admin-modal-overlay" hidden>
+    <div id="authModal" class="admin-modal-overlay is-hidden" style="display: none;" hidden>
       <div class="admin-modal-card">
+        <button type="button" class="admin-modal-close" id="btnCloseAuthModal" title="Cerrar modal">&times;</button>
         <div class="admin-modal-header">
           <div class="trueka-letters">
             <span class="letter-t">t</span><span class="letter-r">r</span><span class="letter-u">u</span><span class="letter-e">e</span><span class="letter-k">a</span>
@@ -494,6 +495,6 @@
     <!-- Toast Notifications -->
     <div id="adminToastContainer" class="admin-toast-container"></div>
 
-    <script src="/admin/admin.js?v=1.2.2"></script>
+    <script src="/admin/admin.js?v=1.2.3"></script>
   </body>
 </html>
