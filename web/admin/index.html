@@ -472,8 +472,14 @@
         <form id="authForm" class="admin-modal-form">
           <div class="form-group">
             <label for="adminSecretInput">Clave Secreta de Administrador</label>
-            <input type="password" id="adminSecretInput" class="form-control form-control-lg" placeholder="••••••••••••" autofocus required>
-            <small class="form-hint">Por defecto en local: <code>trueka-admin-2026</code> (o definida en variable de entorno <code>ADMIN_SECRET</code>)</small>
+            <div style="position: relative; display: flex; align-items: center;">
+              <input type="password" id="adminSecretInput" class="form-control form-control-lg" placeholder="trueka-admin-2026" autofocus required style="padding-right: 45px;">
+              <button type="button" id="btnToggleSecretVisibility" style="position: absolute; right: 10px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);" title="Mostrar / Ocultar clave">👁️</button>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; flex-wrap: wrap; gap: 6px;">
+              <small class="form-hint">Clave por defecto: <code>trueka-admin-2026</code></small>
+              <button type="button" id="btnFillDefaultSecret" class="btn btn-sm btn-outline-clean" style="font-size: 0.75rem; padding: 3px 8px;">🔑 Usar clave por defecto</button>
+            </div>
           </div>
 
           <div class="modal-actions-clean">
@@ -488,6 +494,6 @@
     <!-- Toast Notifications -->
     <div id="adminToastContainer" class="admin-toast-container"></div>
 
-    <script src="/admin/admin.js?v=1.2.0"></script>
+    <script src="/admin/admin.js?v=1.2.2"></script>
   </body>
 </html>

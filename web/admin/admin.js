@@ -106,6 +106,29 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    const btnToggleSecretVisibility = document.getElementById('btnToggleSecretVisibility');
+    if (btnToggleSecretVisibility) {
+      btnToggleSecretVisibility.addEventListener('click', () => {
+        if (adminSecretInput.type === 'password') {
+          adminSecretInput.type = 'text';
+          btnToggleSecretVisibility.textContent = '🙈';
+        } else {
+          adminSecretInput.type = 'password';
+          btnToggleSecretVisibility.textContent = '👁️';
+        }
+      });
+    }
+
+    const btnFillDefaultSecret = document.getElementById('btnFillDefaultSecret');
+    if (btnFillDefaultSecret) {
+      btnFillDefaultSecret.addEventListener('click', () => {
+        if (adminSecretInput) {
+          adminSecretInput.value = 'trueka-admin-2026';
+          adminSecretInput.focus();
+        }
+      });
+    }
+
     if (authForm) {
       authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -121,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const data = await res.json();
           if (res.ok && data.success) {
-            adminToken = secret;
+            adminToken = data.token || secret;
             sessionStorage.setItem('trueka_admin_token', adminToken);
             closeAuthModal();
             updateAuthBadge();
