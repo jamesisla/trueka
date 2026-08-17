@@ -859,17 +859,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('📸 Foto demo aplicada', 'info');
       });
     });
-
-    // Santiago Metro Location Chips for Publishing
-    document.querySelectorAll('.loc-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const locInput = document.getElementById('sellLocation');
-        if (locInput) {
-          locInput.value = chip.dataset.loc;
-          showToast(`🚇 Punto de encuentro: ${chip.dataset.loc}`, 'info');
-        }
-      });
-    });
   }
 
   // Publish Form Submit
