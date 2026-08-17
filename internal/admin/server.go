@@ -1,11 +1,9 @@
 package admin
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"mime"
-	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -17,7 +15,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
-	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
@@ -85,63 +82,6 @@ func resolveBasePath() string {
 	abs, _ := filepath.Abs(".")
 	return abs
 }
-
-func Run() {
-	baseDir := resolveBasePath()
-	dataDir := filepath.Join(baseDir, "data")
-	adminWebDir := filepath.Join(baseDir, "web", "admin")
-	staticDir := filepath.Join(baseDir, "web", "static")
-
-	log.Printf("🛠️  [Trueka Admin] Base path: %s\n", baseDir)
-	log.Printf("📂 [Trueka Admin] Data path: %s\n", dataDir)
-	log.Printf("🖥️  [Trueka Admin] Admin UI path: %s\n", adminWebDir)
-
-	st, err := store.New(dataDir)
-	if err != nil {
-		log.Fatalf("[Trueka Admin] Failed to initialize store: %v", err)
-	}
-
-	cfgStore, err := store.NewConfigStore(dataDir)
-	if err != nil {
-		log.Fatalf("[Trueka Admin] Failed to initialize config store: %v", err)
-	}
-
-	app := fiber.New(fiber.Config{
-		AppName:      "Trueka — Módulo Independiente de Administración v1.1",
-		ServerHeader: "Trueka-Admin-Control",
-		BodyLimit:    10 * 1024 * 1024,
-	})
-
-	app.Use(logger.New())
-	app.Use(cors.New())
-
-	// Security 1: Helmet HTTP Headers
-	app.Use(helmet.New(helmet.Config{
-		XFrameOptions:      "SAMEORIGIN",
-		ContentTypeNosniff: "nosniff",
-		XSSProtection:      "1; mode=block",
-		ReferrerPolicy:     "strict-origin-when-cross-origin",
-	}))
-
-	// Security 2: Rate Limiter for Admin
-	app.Use(limiter.New(limiter.Config{
-		Max:        150,
-		Expiration: 1 * time.Minute,
-		KeyGenerator: func(c *fiber.Ctx) string {
-			return c.IP()
-		},
-		LimitReached: func(c *fiber.Ctx) error {
-			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
-				"success": false,
-				"error":   "Límite de peticiones de administración alcanzado.",
-			})
-		},
-	}))
-
-	// Static routes for admin panel assets
-	app.Get("/favicon.ico", func(c *fiber.Ctx) error {
-		return c.SendStatus(fiber.StatusNoContent)
-	})
 
 func RegisterAdminRoutes(app *fiber.App, st *store.Store, cfgStore *store.ConfigStore, baseDir string) {
 	adminWebDir := filepath.Join(baseDir, "web", "admin")
