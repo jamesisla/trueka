@@ -143,6 +143,8 @@ func Run() {
 		return c.SendStatus(fiber.StatusNoContent)
 	})
 
+func RegisterAdminRoutes(app *fiber.App, st *store.Store, cfgStore *store.ConfigStore, baseDir string) {
+	adminWebDir := filepath.Join(baseDir, "web", "admin")
 	adminIndexHtml := filepath.Join(adminWebDir, "index.html")
 	adminStyleCss := filepath.Join(adminWebDir, "style.css")
 	adminJs := filepath.Join(adminWebDir, "admin.js")
@@ -159,27 +161,13 @@ func Run() {
 		return c.SendFile(adminJs)
 	})
 
-	// Serve main static uploads/images so admin preview can render photos
-	app.Static("/static", staticDir, fiber.Static{
-		ByteRange: true,
-		Browse:    false,
-		MaxAge:    0,
-	})
-
-	app.Static("/admin", adminWebDir, fiber.Static{
-		ByteRange: true,
-		Browse:    false,
-		MaxAge:    0,
-	})
-
-	// Serve Admin Panel on root or /admin
-	app.Get("/", func(c *fiber.Ctx) error {
+	app.Get("/admin", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/html; charset=utf-8")
 		c.Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		return c.SendFile(adminIndexHtml)
 	})
 
-	app.Get("/admin", func(c *fiber.Ctx) error {
+	app.Get("/admin/*", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/html; charset=utf-8")
 		c.Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		return c.SendFile(adminIndexHtml)
@@ -225,21 +213,6 @@ func Run() {
 		var mem runtime.MemStats
 		runtime.ReadMemStats(&mem)
 
-		// Check if main app on port 3005 is online
-		mainPort := os.Getenv("MAIN_PORT")
-		if mainPort == "" {
-			mainPort = "3005"
-		}
-		mainAppURL := fmt.Sprintf("http://localhost:%s/api/health", mainPort)
-		mainAppOnline := false
-
-		client := http.Client{Timeout: 800 * time.Millisecond}
-		resp, err := client.Get(mainAppURL)
-		if err == nil && resp.StatusCode == 200 {
-			mainAppOnline = true
-			_ = resp.Body.Close()
-		}
-
 		products := st.GetAll("", "", "", "", "", "newest")
 		activeCount := 0
 		completedCount := 0
@@ -256,21 +229,19 @@ func Run() {
 
 		return c.JSON(fiber.Map{
 			"success": true,
-			"module":  "trueka-admin-standalone",
-			"version": "1.2.0",
+			"module":  "trueka-admin",
+			"version": "1.3.0",
 			"status":  "running",
 			"uptime":  time.Since(startTime).Round(time.Second).String(),
 			"startedAt": startTime.Format(time.RFC3339),
 			"system": fiber.Map{
-				"goVersion":   runtime.Version(),
+				"goVersion":    runtime.Version(),
 				"numGoroutine": runtime.NumGoroutine(),
-				"allocMB":     float64(mem.Alloc) / 1024 / 1024,
-				"sysMB":       float64(mem.Sys) / 1024 / 1024,
+				"allocMB":      float64(mem.Alloc) / 1024 / 1024,
+				"sysMB":        float64(mem.Sys) / 1024 / 1024,
 			},
 			"mainApp": fiber.Map{
-				"port":   mainPort,
-				"url":    fmt.Sprintf("http://localhost:%s", mainPort),
-				"online": mainAppOnline,
+				"online": true,
 			},
 			"stats": fiber.Map{
 				"totalProducts":   len(products),
@@ -283,15 +254,9 @@ func Run() {
 
 	// 2. Stop/Shutdown admin service via API (Requires Auth)
 	api.Post("/stop", adminAuthRequired, func(c *fiber.Ctx) error {
-		go func() {
-			time.Sleep(500 * time.Millisecond)
-			log.Println("🛑 [Trueka Admin] Stopping admin server via API request...")
-			_ = app.ShutdownWithContext(context.Background())
-			os.Exit(0)
-		}()
 		return c.JSON(fiber.Map{
 			"success": true,
-			"message": "El módulo de administración se está deteniendo correctamente.",
+			"message": "Módulo de administración activo.",
 		})
 	})
 
@@ -432,8 +397,60 @@ func Run() {
 			"data":    allProposals,
 		})
 	})
+}
 
-	// Port configuration (Default 3006 for independent admin service)
+func Run() {
+	baseDir := resolveBasePath()
+	dataDir := filepath.Join(baseDir, "data")
+	staticDir := filepath.Join(baseDir, "web", "static")
+
+	log.Printf("🛠️  [Trueka Admin] Base path: %s\n", baseDir)
+	log.Printf("📂 [Trueka Admin] Data path: %s\n", dataDir)
+
+	st, err := store.New(dataDir)
+	if err != nil {
+		log.Fatalf("[Trueka Admin] Failed to initialize store: %v", err)
+	}
+
+	cfgStore, err := store.NewConfigStore(dataDir)
+	if err != nil {
+		log.Fatalf("[Trueka Admin] Failed to initialize config store: %v", err)
+	}
+
+	app := fiber.New(fiber.Config{
+		AppName:      "Trueka — Módulo de Administración v1.3",
+		ServerHeader: "Trueka-Admin-Control",
+		BodyLimit:    10 * 1024 * 1024,
+	})
+
+	app.Use(logger.New())
+	app.Use(cors.New())
+
+	// Security: Helmet HTTP Headers
+	app.Use(helmet.New(helmet.Config{
+		XFrameOptions:      "SAMEORIGIN",
+		ContentTypeNosniff: "nosniff",
+		XSSProtection:      "1; mode=block",
+		ReferrerPolicy:     "strict-origin-when-cross-origin",
+	}))
+
+	// Static assets (/static/...)
+	app.Static("/static", staticDir, fiber.Static{
+		ByteRange: true,
+		Browse:    false,
+		MaxAge:    0,
+	})
+
+	// Register all admin endpoints and pages
+	RegisterAdminRoutes(app, st, cfgStore, baseDir)
+
+	// Also serve root as /admin for standalone mode
+	adminWebDir := filepath.Join(baseDir, "web", "admin")
+	app.Get("/", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "text/html; charset=utf-8")
+		return c.SendFile(filepath.Join(adminWebDir, "index.html"))
+	})
+
 	port := os.Getenv("ADMIN_PORT")
 	if port == "" {
 		port = os.Getenv("PORT")
@@ -445,7 +462,6 @@ func Run() {
 	log.Printf("========================================================\n")
 	log.Printf("⚙️  [Trueka Admin] Panel de Control disponible en:\n")
 	log.Printf("👉 http://localhost:%s\n", port)
-	log.Printf("👉 http://0.0.0.0:%s\n", port)
 	log.Printf("========================================================\n")
 
 	if err := app.Listen(fmt.Sprintf(":%s", port)); err != nil {

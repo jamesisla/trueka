@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/example/base-opcion3/internal/admin"
 	"github.com/example/base-opcion3/internal/handler"
 	"github.com/example/base-opcion3/internal/store"
 	"github.com/gofiber/fiber/v2"
@@ -202,6 +203,9 @@ func Run() {
 	// Barter direct WhatsApp
 	api.Post("/trade/whatsapp", prodHandler.TradeWhatsApp)
 	api.Post("/checkout/whatsapp", prodHandler.TradeWhatsApp)
+
+	// Integrated Admin CMS routes & API (/admin, /admin/*, /api/admin/*)
+	admin.RegisterAdminRoutes(app, st, cfgStore, baseDir)
 
 	port := os.Getenv("PORT")
 	if port == "" {
