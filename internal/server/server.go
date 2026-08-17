@@ -143,6 +143,12 @@ func Run() {
 		return c.SendFile(indexHtml)
 	})
 
+	// Favicon fallback
+	app.Get("/favicon.ico", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "image/svg+xml")
+		return c.SendFile(filepath.Join(staticDir, "favicon.svg"))
+	})
+
 	api := app.Group("/api")
 	api.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
